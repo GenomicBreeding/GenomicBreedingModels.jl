@@ -1,0 +1,15 @@
+*.code-workspace
+*.csv
+*.jl.*.cov
+*.jl.cov
+*.jl.mem
+*.jld2
+*.svg
+*.tsv
+*.txt
+.DS_Store
+/docs/Manifest.toml
+/docs/build/
+Manifest.toml
+docs/build/
+tmp/
