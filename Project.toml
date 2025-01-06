@@ -6,6 +6,7 @@ version = "1.0.0-DEV"
 [deps]
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 GBCore = "50d95318-1838-4cfa-a614-3543b4bb0509"
 GBIO = "f6f5bf5f-7369-4de1-9a2f-51e3ce5e0754"
 GLMNet = "8d5ece8b-de18-5317-b113-243142960cc6"
@@ -25,6 +26,7 @@ GBIO = {rev = "main", url = "https://github.com/GenomicBreeding/GBIO.jl.git"}
 [compat]
 Distances = "0.10.12"
 Distributions = "0.25.115"
+Documenter = "1.8.0"
 GBCore = "1.0.0"
 GBIO = "1.0.0"
 GLMNet = "0.7.4"
