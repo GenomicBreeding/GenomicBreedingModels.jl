@@ -17,6 +17,6 @@ include("bayes.jl")
 include("linear.jl")
 
 export metrics
-export ols
+export ols, ridge, lasso, bayesRR
 
 end

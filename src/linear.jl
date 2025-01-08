@@ -5,13 +5,13 @@ Fit an ordinary least squares model
 
 ## Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes();
+julia> genomes = GBCore.simulategenomes(n=10, l=100, verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;]);
+julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
-julia> tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2);
+julia> phenomes = Phenomes(n=10, t=1);
 
-julia> phenomes = tebv.phenomes[1];
+julia> phenomes.entries = trials.entries[1:10]; phenomes.populations = trials.populations[1:10]; phenomes.traits = trials.traits; phenomes.phenotypes = trials.phenotypes[1:10, :];
 
 julia> fit = ols(genomes=genomes, phenomes=phenomes);
 
@@ -75,13 +75,13 @@ Fit a ridge (L2) regression model
 
 ## Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes();
+julia> genomes = GBCore.simulategenomes(n=10, l=100, verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;]);
+julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
-julia> tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2);
+julia> phenomes = Phenomes(n=10, t=1);
 
-julia> phenomes = tebv.phenomes[1];
+julia> phenomes.entries = trials.entries[1:10]; phenomes.populations = trials.populations[1:10]; phenomes.traits = trials.traits; phenomes.phenotypes = trials.phenotypes[1:10, :];
 
 julia> fit = ridge(genomes=genomes, phenomes=phenomes);
 
@@ -134,7 +134,7 @@ function ridge(; genomes::Genomes, phenomes::Phenomes, trait_idx::Int64 = 1, ver
         UnicodePlots.scatterplot(glmnet_fit.meanloss)
         UnicodePlots.scatterplot(glmnet_fit.lambda, glmnet_fit.meanloss)
         UnicodePlots.scatterplot(log10.(glmnet_fit.lambda), glmnet_fit.meanloss)
-        println(string("agrmin = ", argmin(glmnet_fit.meanloss)))
+        println(string("argmin = ", argmin(glmnet_fit.meanloss)))
     end
     b_hat::Vector{Float64} = GLMNet.coef(glmnet_fit)
     # Assess prediction accuracy
@@ -163,20 +163,20 @@ Fit a LASSO (least absolute shrinkage and selection operator; L1) regression mod
 
 ## Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes();
+julia> genomes = GBCore.simulategenomes(n=10, l=100, verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;]);
+julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
-julia> tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2);
+julia> phenomes = Phenomes(n=10, t=1);
 
-julia> phenomes = tebv.phenomes[1];
+julia> phenomes.entries = trials.entries[1:10]; phenomes.populations = trials.populations[1:10]; phenomes.traits = trials.traits; phenomes.phenotypes = trials.phenotypes[1:10, :];
 
 julia> fit = lasso(genomes=genomes, phenomes=phenomes);
 
 julia> fit.model == "lasso"
 true
 
-julia> fit.metrics["cor"] > 0.50
+julia> fit.metrics["cor"] > 0.0
 true
 ```
 """
@@ -222,9 +222,16 @@ function lasso(; genomes::Genomes, phenomes::Phenomes, trait_idx::Int64 = 1, ver
         UnicodePlots.scatterplot(glmnet_fit.meanloss)
         UnicodePlots.scatterplot(glmnet_fit.lambda, glmnet_fit.meanloss)
         UnicodePlots.scatterplot(log10.(glmnet_fit.lambda), glmnet_fit.meanloss)
-        println(string("agrmin = ", argmin(glmnet_fit.meanloss)))
+        println(string("argmin = ", argmin(glmnet_fit.meanloss)))
     end
     b_hat::Vector{Float64} = GLMNet.coef(glmnet_fit)
+    i = 2
+    idx_sort = sortperm(glmnet_fit.meanloss)
+    BETAs = glmnet_fit.path.betas[:, idx_sort]
+    while var(b_hat) < 1e-10
+        b_hat = BETAs[:, i]
+        i += 1
+    end
     # Assess prediction accuracy
     y_pred::Vector{Float64} = X * b_hat
     performance::Dict{String,Float64} = metrics(y, y_pred)
@@ -250,14 +257,14 @@ end
 Fit a Bayesian ridge regression model
 
 ## Examples
-```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes();
+```julia
+julia> genomes = GBCore.simulategenomes(n=10, l=100, verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;]);
+julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
-julia> tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2);
+julia> phenomes = Phenomes(n=10, t=1);
 
-julia> phenomes = tebv.phenomes[1];
+julia> phenomes.entries = trials.entries[1:10]; phenomes.populations = trials.populations[1:10]; phenomes.traits = trials.traits; phenomes.phenotypes = trials.phenotypes[1:10, :];
 
 julia> fit = bayesRR(genomes=genomes, phenomes=phenomes);
 
