@@ -6,6 +6,7 @@ version = "1.0.0-DEV"
 [deps]
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 GBCore = "50d95318-1838-4cfa-a614-3543b4bb0509"
 GLMNet = "8d5ece8b-de18-5317-b113-243142960cc6"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -23,6 +24,7 @@ GBCore = {rev = "main", url = "https://github.com/GenomicBreeding/GBCore.jl"}
 [compat]
 Distances = "0.10.12"
 Distributions = "0.25.115"
+Documenter = "1.8.0"
 GBCore = "1.0.0"
 GLMNet = "0.7.4"
 LinearAlgebra = "1.11.0"
