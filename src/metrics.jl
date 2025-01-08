@@ -1,4 +1,4 @@
-function metrics(y_obs::Vector{Float64}, y_pred::Vector{Float64})::Dict{String, Float64}
+function metrics(y_obs::Vector{Float64}, y_pred::Vector{Float64})::Dict{String,Float64}
     # y_obs::Vector{Float64} = rand(100); y_pred::Vector{Float64} = rand(100)
     # UnicodePlots.scatterplot(y_obs, y_pred)
     Dict(

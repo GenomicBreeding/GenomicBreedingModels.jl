@@ -1,7 +1,6 @@
 module GBModels
 
 using GBCore
-using GBIO
 using LinearAlgebra
 using StatsBase
 using Distributions
