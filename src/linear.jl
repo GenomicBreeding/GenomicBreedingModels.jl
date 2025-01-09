@@ -256,7 +256,7 @@ end
 Fit a Bayesian ridge regression model
 
 ## Examples
-```jldoctest; setup = :(using GBCore, GBModels)
+```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
 julia> genomes = GBCore.simulategenomes(n=10, l=1_000, verbose=false);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
