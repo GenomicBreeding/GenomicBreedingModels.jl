@@ -263,7 +263,7 @@ julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1
 
 julia> tebv = GBCore.analyse(trials, max_levels=5, max_time_per_model=2, verbose=false);
 
-julia> phenomes = tebv.phenomes[1]
+julia> phenomes = tebv.phenomes[1];
 
 julia> fit = Suppressor.@suppress bayesRR(genomes=genomes, phenomes=phenomes);
 
