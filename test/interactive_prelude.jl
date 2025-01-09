@@ -12,4 +12,5 @@ using UnicodePlots, Plots
 using GLMNet
 using Turing
 using Zygote
+using ReverseDiff
 using Suppressor

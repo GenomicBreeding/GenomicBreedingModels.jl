@@ -9,12 +9,13 @@ trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_har
 tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
 phenomes = tebv.phenomes[1]
 # Extract genotype and phenotype data
-G::Matrix{Float64} = genomes.allele_frequencies[idx, :]
-y::Vector{Float64} = phenomes.phenotypes[idx, trait_idx]
+G::Matrix{Float64} = genomes.allele_frequencies
+y::Vector{Float64} = phenomes.phenotypes[:, 1]
 # Regress for just 200 iterations for demonstration purposes only. Use way way more iterations, e.g. 10,000.
 rng::TaskLocalRNG = Random.seed!(123)
 model = turing_bayesRR(G, y)
-@time chain = Turing.sample(rng, model, NUTS(), 200, progress=true)
+# @time chain = Turing.sample(rng, model, NUTS(adtype=AutoReverseDiff(true)), 200, progress=true)
+@time chain = Turing.sample(rng, model, NUTS(100, 0.5, max_depth=10, Δ_max=1000.0, init_ϵ=0.2), 200, progress=true)
 # Use the mean paramter values after 150 burn-in iterations
 params = Turing.get_params(chain[150:end, :, :])
 b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims=1)[:, :, 1], dims=2)[:,1])
@@ -48,8 +49,8 @@ trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_har
 tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
 phenomes = tebv.phenomes[1]
 # Extract genotype and phenotype data
-G::Matrix{Float64} = genomes.allele_frequencies[idx, :]
-y::Vector{Float64} = phenomes.phenotypes[idx, trait_idx]
+G::Matrix{Float64} = genomes.allele_frequencies
+y::Vector{Float64} = phenomes.phenotypes[:, trait_idx]
 # Regress for just 200 iterations for demonstration purposes only. Use way way more iterations, e.g. 10,000.
 rng::TaskLocalRNG = Random.seed!(123)
 model = turing_bayesLASSO(G, y)
@@ -90,8 +91,8 @@ trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_har
 tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
 phenomes = tebv.phenomes[1]
 # Extract genotype and phenotype data
-G::Matrix{Float64} = genomes.allele_frequencies[idx, :]
-y::Vector{Float64} = phenomes.phenotypes[idx, trait_idx]
+G::Matrix{Float64} = genomes.allele_frequencies
+y::Vector{Float64} = phenomes.phenotypes[:, trait_idx]
 # Regress for just 200 iterations for demonstration purposes only. Use way way more iterations, e.g. 10,000.
 rng::TaskLocalRNG = Random.seed!(123)
 model = turing_bayesA(G, y)
