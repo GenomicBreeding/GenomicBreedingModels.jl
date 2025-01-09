@@ -12,3 +12,4 @@ using UnicodePlots, Plots
 using GLMNet
 using Turing
 using Zygote
+using Suppressor

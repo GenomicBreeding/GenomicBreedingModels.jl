@@ -25,7 +25,7 @@ performance::Dict{String, Float64} = metrics(y, y_pred)
 """
 Turing.@model function turing_bayesRR(G, y)
     # Set variance prior.
-    σ² ~ truncated(Distributions.Normal(0, std(y)); lower = 0)
+    σ² ~ Distributions.Exponential(1.0 / std(y))
     # Set intercept prior.
     intercept ~ Distributions.Normal(mean(y), std(y))
     # Set the priors on our coefficients.
@@ -64,7 +64,7 @@ performance::Dict{String, Float64} = metrics(y, y_pred)
 """
 Turing.@model function turing_bayesLASSO(G, y)
     # Set variance prior.
-    σ² ~ truncated(Distributions.Normal(0, std(y)); lower = 0)
+    σ² ~ Distributions.Exponential(1.0 / std(y))
     # Set intercept prior.
     intercept ~ Distributions.Normal(mean(y), std(y))
     # Set the priors on our coefficients.
@@ -106,7 +106,7 @@ performance::Dict{String, Float64} = metrics(y, y_pred)
 """
 Turing.@model function turing_bayesA(G, y)
     # Set variance prior.
-    σ² ~ truncated(Distributions.Normal(0, std(y)); lower = 0)
+    σ² ~ Distributions.Exponential(1.0 / std(y))
     # Set intercept prior.
     intercept ~ Distributions.Normal(mean(y), std(y))
     # Set the priors on our coefficients.
@@ -212,7 +212,7 @@ performance::Dict{String, Float64} = metrics(y, y_pred)
 """
 Turing.@model function turing_bayesB(G, y)
     # Set variance prior.
-    σ² ~ truncated(Distributions.Normal(0, std(y)); lower = 0)
+    σ² ~ Distributions.Exponential(1.0 / std(y))
     # Set intercept prior.
     intercept ~ Distributions.Normal(mean(y), std(y))
     # Set the priors on our coefficients
