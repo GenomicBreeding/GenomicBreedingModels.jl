@@ -3,24 +3,46 @@ Turing specification of Bayesian ridge regression
 
 # Example usage
 ```julia
-# Simulate data
+# Benchmarking
 genomes = GBCore.simulategenomes(n=10, l=100)
 trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
 tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
 phenomes = tebv.phenomes[1]
-# Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
-# Regress for just 200 iterations for demonstration purposes only. Use way way more iterations, e.g. 10,000.
 rng::TaskLocalRNG = Random.seed!(123)
 model = turing_bayesRR(G, y)
-# @time chain = Turing.sample(rng, model, NUTS(adtype=AutoReverseDiff(true)), 200, progress=true)
-@time chain = Turing.sample(rng, model, NUTS(100, 0.5, max_depth=10, Δ_max=1000.0, init_ϵ=0.2), 200, progress=true)
+benchmarks = TuringBenchmarking.benchmark_model(
+    model;
+    # Check correctness of computations
+    check=true,
+    # Automatic differentiation backends to check and benchmark
+    adbackends=[:forwarddiff, :reversediff, :reversediff_compiled, :zygote]
+)
+
+
+# Test more loci
+genomes = GBCore.simulategenomes(n=10, l=10_000)
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
+tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
+phenomes = tebv.phenomes[1]
+G::Matrix{Float64} = genomes.allele_frequencies
+y::Vector{Float64} = phenomes.phenotypes[:, 1]
+rng::TaskLocalRNG = Random.seed!(123)
+# Check for uninferred types in the model
+@code_warntype model = turing_bayesRR(G, y)
+# Fit
+model = turing_bayesRR(G, y)
+niter::Int64 = 1_500
+nburnin::Int64 = 500
+# We use compile=true in AutoReverseDiff() because we do not have any if-statements in our Turing model below
+@time chain = Turing.sample(rng, model, NUTS(nburnin, 0.5, max_depth=5, Δ_max=1000.0, init_ϵ=0.2; adtype=AutoReverseDiff(compile=true)), niter-nburnin, progress=true);
 # Use the mean paramter values after 150 burn-in iterations
-params = Turing.get_params(chain[150:end, :, :])
-b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims=1)[:, :, 1], dims=2)[:,1])
+params = Turing.get_params(chain[150:end, :, :]);
+b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims=1)[:, :, 1], dims=2)[:,1]);
 # Assess prediction accuracy
-y_pred::Vector{Float64} = hcat(ones(size(G,1)), G) * b_hat
+y_pred::Vector{Float64} = hcat(ones(size(G,1)), G) * b_hat;
+UnicodePlots.scatterplot(y, y_pred)
 performance::Dict{String, Float64} = metrics(y, y_pred)
 ```
 """
@@ -38,6 +60,15 @@ Turing.@model function turing_bayesRR(G, y)
     return y ~ Distributions.MvNormal(mu, σ² * I)
 end
 
+dmv = Distributions.MvNormal(Distributions.Zeros(10), I)
+mean(rand(dmv, 1_000), dims = 2)
+var(rand(dmv, 1_000), dims = 2)
+
+dfd = filldist(Distributions.Normal(0.0, 1.0), 10)
+mean(rand(dfd, 1_000), dims = 2)
+var(rand(dfd, 1_000), dims = 2)
+
+
 """
 Turing specification of Bayesian LASSO regression
 
@@ -54,12 +85,16 @@ y::Vector{Float64} = phenomes.phenotypes[:, trait_idx]
 # Regress for just 200 iterations for demonstration purposes only. Use way way more iterations, e.g. 10,000.
 rng::TaskLocalRNG = Random.seed!(123)
 model = turing_bayesLASSO(G, y)
-@time chain = Turing.sample(rng, model, NUTS(), 200, progress=true)
+niter::Int64 = 1_500
+nburnin::Int64 = 500
+# We use compile=true in AutoReverseDiff() because we do not have any if-statements in our Turing model below
+@time chain = Turing.sample(rng, model, NUTS(nburnin, 0.5, max_depth=5, Δ_max=1000.0, init_ϵ=0.2; adtype=AutoReverseDiff(compile=true)), niter-nburnin, progress=true);
 # Use the mean paramter values after 150 burn-in iterations
-params = Turing.get_params(chain[150:end, :, :])
-b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims=1)[:, :, 1], dims=2)[:,1])
+params = Turing.get_params(chain[150:end, :, :]);
+b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims=1)[:, :, 1], dims=2)[:,1]);
 # Assess prediction accuracy
-y_pred::Vector{Float64} = hcat(ones(size(G,1)), G) * b_hat
+y_pred::Vector{Float64} = hcat(ones(size(G,1)), G) * b_hat;
+UnicodePlots.scatterplot(y, y_pred)
 performance::Dict{String, Float64} = metrics(y, y_pred)
 ```
 """
@@ -70,10 +105,8 @@ Turing.@model function turing_bayesLASSO(G, y)
     intercept ~ Distributions.Normal(mean(y), std(y))
     # Set the priors on our coefficients.
     nfeatures = size(G, 2)
-    coefficients = Vector{Float64}(undef, nfeatures)
-    for j = 1:nfeatures
-        coefficients[j] ~ Distributions.Laplace(0.0, 1.0)
-    end
+    s ~ truncated(Distributions.Normal(0, 1); lower = 0)
+    coefficients ~ filldist(Distributions.Laplace(0.0, s), nfeatures)
     # Calculate all the mu terms.
     mu = intercept .+ G * coefficients
     return y ~ Distributions.MvNormal(mu, σ² * I)
@@ -96,7 +129,10 @@ y::Vector{Float64} = phenomes.phenotypes[:, trait_idx]
 # Regress for just 200 iterations for demonstration purposes only. Use way way more iterations, e.g. 10,000.
 rng::TaskLocalRNG = Random.seed!(123)
 model = turing_bayesA(G, y)
-@time chain = Turing.sample(rng, model, NUTS(), 200, progress=true)
+niter::Int64 = 1_500
+nburnin::Int64 = 500
+# We use compile=true in AutoReverseDiff() because we do not have any if-statements in our Turing model below
+@time chain = Turing.sample(rng, model, NUTS(nburnin, 0.5, max_depth=5, Δ_max=1000.0, init_ϵ=0.2; adtype=AutoReverseDiff(compile=true)), niter-nburnin, progress=true);
 # Use the mean paramter values after 150 burn-in iterations
 params = Turing.get_params(chain[150:end, :, :])
 b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims=1)[:, :, 1], dims=2)[:,1])
@@ -196,7 +232,10 @@ y::Vector{Float64} = phenomes.phenotypes[:, 1]
 # Regress for just 200 iterations for demonstration purposes only. Use way way more iterations, e.g. 10,000.
 rng::TaskLocalRNG = Random.seed!(123)
 model = turing_bayesB(G, y)
-@time chain = Turing.sample(rng, model, NUTS(), 200, progress=true)
+niter::Int64 = 1_500
+nburnin::Int64 = 500
+# We use compile=true in AutoReverseDiff() because we do not have any if-statements in our Turing model below
+@time chain = Turing.sample(rng, model, NUTS(nburnin, 0.5, max_depth=5, Δ_max=1000.0, init_ϵ=0.2; adtype=AutoReverseDiff(compile=true)), niter-nburnin, progress=true);
 # Use the mean paramter values after 150 burn-in iterations
 params = Turing.get_params(chain[150:end, :, :])
 

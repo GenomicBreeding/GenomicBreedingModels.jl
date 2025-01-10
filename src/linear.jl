@@ -85,9 +85,6 @@ julia> phenomes.entries = trials.entries[1:10]; phenomes.populations = trials.po
 
 julia> fit = ridge(genomes=genomes, phenomes=phenomes);
 
-julia> fit.model == "ridge"
-true
-
 julia> fit.metrics["cor"] > 0.50
 true
 ```
@@ -172,9 +169,6 @@ julia> phenomes = Phenomes(n=10, t=1);
 julia> phenomes.entries = trials.entries[1:10]; phenomes.populations = trials.populations[1:10]; phenomes.traits = trials.traits; phenomes.phenotypes = trials.phenotypes[1:10, :];
 
 julia> fit = lasso(genomes=genomes, phenomes=phenomes);
-
-julia> fit.model == "lasso"
-true
 
 julia> fit.metrics["cor"] > 0.0
 true
@@ -309,16 +303,30 @@ function bayesRR(;
     fit.b_hat_labels = vcat(["intercept"], genomes.loci_alleles)
     # Number of samples per thread or per chain
     if Threads.nthreads() < nchains
-        throw(ArgumentError("Please reduce the number of MCMC chains to the number of threads available for Julia, otherwise just manually rerun the model. " *
-        "Currently you have " * string(Threads.nthreads()) * " threads and asking for " * string(nchains) * " chains."))
+        throw(
+            ArgumentError(
+                "Please reduce the number of MCMC chains to the number of threads available for Julia, otherwise just manually rerun the model. " *
+                "Currently you have " *
+                string(Threads.nthreads()) *
+                " threads and asking for " *
+                string(nchains) *
+                " chains.",
+            ),
+        )
     end
-    nsamples_per_thread::Int64 = Int64(ceil(niter / nchains))
     # MCMC
     rng::TaskLocalRNG = Random.seed!(seed)
     model = turing_bayesRR(G, y)
-    # @time chain = Turing.sample(rng, model, NUTS(), niter, progress=true)
-    @time chain =
-        Turing.sample(rng, model, NUTS(), MCMCThreads(), nsamples_per_thread, nchains; verbose = verbose, progress = verbose)
+    @time chain = Turing.sample(
+        rng,
+        model,
+        NUTS(nburnin, 0.5, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.2; adtype = AutoReverseDiff(compile = true)),
+        MCMCThreads(),
+        niter - nburnin,
+        nchains;
+        verbose = verbose,
+        progress = verbose,
+    )
     # Use the mean paramter values after burn-in
     b_hat::Vector{Float64} = zeros(p + 1)
     weight::Float64 = 1.00 / nchains

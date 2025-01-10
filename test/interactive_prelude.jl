@@ -11,6 +11,6 @@ using Distances
 using UnicodePlots, Plots
 using GLMNet
 using Turing
-using Zygote
+using BenchmarkTools, TuringBenchmarking
 using ReverseDiff
 using Suppressor

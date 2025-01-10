@@ -4,9 +4,9 @@ authors = ["jeffersonparil@gmail.com"]
 version = "1.0.0-DEV"
 
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 GBCore = "50d95318-1838-4cfa-a614-3543b4bb0509"
 GLMNet = "8d5ece8b-de18-5317-b113-243142960cc6"
@@ -19,30 +19,27 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
+TuringBenchmarking = "0db1332d-5c25-4deb-809f-459bc696f94f"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
-Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
-
-[sources]
-GBCore = {rev = "main", url = "https://github.com/GenomicBreeding/GBCore.jl"}
 
 [compat]
+BenchmarkTools = "1.6.0"
 Distances = "0.10.12"
-Distributions = "0.25.115"
-DistributionsAD = "0.6.45"
+Distributions = "0.25.116"
 Documenter = "1.8.0"
 GBCore = "1.0.0"
 GLMNet = "0.7.4"
 LinearAlgebra = "1.11.0"
-Optimization = "3.14.0"
+Optimization = "4.0.5"
 Plots = "1.40.9"
 Random = "1.11.0"
 ReverseDiff = "1.15.3"
 Statistics = "1.11.1"
 StatsBase = "0.34.4"
 Suppressor = "0.2.8"
-Turing = "0.28.1"
+Turing = "0.35.5"
+TuringBenchmarking = "0.5.7"
 UnicodePlots = "3.7.1"
-Zygote = "0.7.1"
 julia = "1.11"
 
 [extras]
