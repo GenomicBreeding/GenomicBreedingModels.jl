@@ -1,5 +1,6 @@
 using Pkg
 Pkg.activate(".")
+Pkg.add(url="https://github.com/GenomicBreeding/GBCore.jl")
 using GBModels
 using GBCore
 using LinearAlgebra
