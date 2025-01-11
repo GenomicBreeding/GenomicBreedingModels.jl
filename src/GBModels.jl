@@ -19,6 +19,9 @@ include("bayes.jl")
 include("linear.jl")
 
 export metrics
-export ols, ridge, lasso, bayesRR
+export turing_bayesG, turing_bayesGs, turing_bayesGπ, turing_bayesGπs
+export turing_bayesL, turing_bayesLs, turing_bayesLπ, turing_bayesLπs
+export turing_bayesT, turing_bayesTπ
+export ols, ridge, lasso, bayesian
 
 end

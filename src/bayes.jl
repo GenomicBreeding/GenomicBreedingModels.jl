@@ -176,7 +176,7 @@ UnicodePlots.scatterplot(y, y_pred)
 performance::Dict{String, Float64} = metrics(y, y_pred)
 ```
 """
-Turing.@model function turing_bayesLs(G, y, ::Type{T}=Float64) where {T}
+Turing.@model function turing_bayesLs(G, y, ::Type{T} = Float64) where {T}
     # Set variance prior.
     σ² ~ Distributions.Exponential(1.0 / std(y))
     # Set intercept prior.
@@ -185,7 +185,7 @@ Turing.@model function turing_bayesLs(G, y, ::Type{T}=Float64) where {T}
     nfeatures = size(G, 2)
     b ~ filldist(Distributions.Exponential(1.0), nfeatures)
     coefficients = Vector{T}(undef, nfeatures)
-    for i in 1:nfeatures
+    for i = 1:nfeatures
         coefficients[i] ~ Distributions.Laplace(0.0, b[i])
     end
     # Calculate all the mu terms.
@@ -468,7 +468,7 @@ UnicodePlots.scatterplot(y, y_pred)
 performance::Dict{String, Float64} = metrics(y, y_pred)
 ```
 """
-Turing.@model function turing_bayesNπs(G, y, ::Type{T}=Float64) where {T}
+Turing.@model function turing_bayesNπs(G, y, ::Type{T} = Float64) where {T}
     # Set variance prior.
     σ² ~ Distributions.Exponential(1.0 / std(y))
     # Set intercept prior.
@@ -478,7 +478,7 @@ Turing.@model function turing_bayesNπs(G, y, ::Type{T}=Float64) where {T}
     π ~ Distributions.Uniform(0.0, 1.0)
     s² ~ filldist(Distributions.Exponential(1.0), nfeatures)
     coefficients = Vector{T}(undef, nfeatures)
-    for i in 1:nfeatures
+    for i = 1:nfeatures
         coefficients[i] ~ NπDist(π, 0.0, s²[i])
     end
     # Calculate all the mu terms.
@@ -617,7 +617,7 @@ UnicodePlots.scatterplot(y, y_pred)
 performance::Dict{String, Float64} = metrics(y, y_pred)
 ```
 """
-Turing.@model function turing_bayesLπs(G, y, ::Type{T}=Float64) where {T}
+Turing.@model function turing_bayesLπs(G, y, ::Type{T} = Float64) where {T}
     # Set variance prior.
     σ² ~ Distributions.Exponential(1.0 / std(y))
     # Set intercept prior.
@@ -627,7 +627,7 @@ Turing.@model function turing_bayesLπs(G, y, ::Type{T}=Float64) where {T}
     π ~ Distributions.Uniform(0.0, 1.0)
     b ~ filldist(Distributions.Exponential(1.0), nfeatures)
     coefficients = Vector{T}(undef, nfeatures)
-    for i in 1:nfeatures
+    for i = 1:nfeatures
         coefficients[i] ~ LπDist(π, 0.0, b[i])
     end
     # Calculate all the mu terms.

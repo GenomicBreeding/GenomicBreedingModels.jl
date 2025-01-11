@@ -245,7 +245,16 @@ function lasso(; genomes::Genomes, phenomes::Phenomes, trait_idx::Int64 = 1, ver
 end
 
 """
-    bayesRR(genomes::Genomes, phenomes::Phenomes, trait_idx::Int64=1, verbose::Bool=false)::Fit
+    bayesian(;
+        genomes::Genomes,
+        phenomes::Phenomes,
+        trait_idx::Int64 = 1,
+        turing_model::Function=turing_bayesG,
+        seed::Int64 = 123,
+        nburnin::Int64 = 500,
+        niter::Int64 = 1_500,
+        verbose::Bool = false,
+    )::Fit
 
 Fit a Bayesian ridge regression model
 
@@ -259,28 +268,28 @@ julia> tebv = GBCore.analyse(trials, max_levels=5, max_time_per_model=2, verbose
 
 julia> phenomes = tebv.phenomes[1];
 
-julia> fit = Suppressor.@suppress bayesRR(genomes=genomes, phenomes=phenomes);
+julia> fit = Suppressor.@suppress bayesian(genomes=genomes, phenomes=phenomes);
 
 julia> fit.metrics["cor"] > 0.5
 true
 ```
 """
-function bayesRR(;
+function bayesian(;
     genomes::Genomes,
     phenomes::Phenomes,
     trait_idx::Int64 = 1,
+    turing_model::Function = turing_bayesG,
     seed::Int64 = 123,
     nburnin::Int64 = 500,
     niter::Int64 = 1_500,
-    nchains::Int64 = 1,
     verbose::Bool = false,
 )::Fit
     # genomes = GBCore.simulategenomes(n=10, l=100)
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
     # tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
     # phenomes = tebv.phenomes[1]
-    # trait_idx=1; verbose=false
-    # seed = 123; nburnin = 500; niter = 1_500; nchains = 3
+    # trait_idx=1; turing_model::Function=turing_bayesG;
+    # seed = 123; nburnin = 500; niter = 1_500; verbose=false
     # Merge genomes and phenomes keeping only common the entries
     if genomes.entries != phenomes.entries
         genomes, phenomes = GBCore.merge(genomes, phenomes, keep_all = false)
@@ -296,47 +305,25 @@ function bayesRR(;
     end
     G::Matrix{Float64} = genomes.allele_frequencies[idx, :]
     y::Vector{Float64} = phenomes.phenotypes[idx, trait_idx]
-    n, p = size(G)
     # Instantiate output Fit
     fit = Fit(l = size(G, 2) + 1)
     fit.model = "bayesRR"
     fit.b_hat_labels = vcat(["intercept"], genomes.loci_alleles)
-    # Number of samples per thread or per chain
-    if Threads.nthreads() < nchains
-        throw(
-            ArgumentError(
-                "Please reduce the number of MCMC chains to the number of threads available for Julia, otherwise just manually rerun the model. " *
-                "Currently you have " *
-                string(Threads.nthreads()) *
-                " threads and asking for " *
-                string(nchains) *
-                " chains.",
-            ),
-        )
-    end
     # MCMC
     rng::TaskLocalRNG = Random.seed!(seed)
-    model = turing_bayesRR(G, y)
+    model = turing_model(G, y)
     @time chain = Turing.sample(
         rng,
         model,
         NUTS(nburnin, 0.5, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.2; adtype = AutoReverseDiff(compile = true)),
-        MCMCThreads(),
         niter - nburnin,
-        nchains;
-        verbose = verbose,
-        progress = verbose,
+        progress = true,
     )
-    # Use the mean paramter values after burn-in
-    b_hat::Vector{Float64} = zeros(p + 1)
-    weight::Float64 = 1.00 / nchains
-    for i = 1:nchains
-        params = Turing.get_params(chain[nburnin:end, :, i])
-        b_hat[1] += weight * params.intercept[1]
-        b_hat[2:end] .+= weight .* reduce(hcat, params.coefficients)[1, :]
-    end
+    # Use the mean paramter values after 150 burn-in iterations
+    params = Turing.get_params(chain[(nburnin+1):end, :, :])
+    b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims = 1)[:, :, 1], dims = 2)[:, 1])
     # Assess prediction accuracy
-    y_pred::Vector{Float64} = hcat(ones(n), G) * b_hat
+    y_pred::Vector{Float64} = hcat(ones(size(G, 1)), G) * b_hat
     performance::Dict{String,Float64} = metrics(y, y_pred)
     if verbose
         UnicodePlots.scatterplot(y, y_pred)
