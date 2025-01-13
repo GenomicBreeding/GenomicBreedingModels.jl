@@ -249,7 +249,8 @@ end
         genomes::Genomes,
         phenomes::Phenomes,
         trait_idx::Int64 = 1,
-        turing_model::Function=turing_bayesG,
+        turing_model::Function = turing_bayesG,
+        sampling_method::Int64 = 1,
         seed::Int64 = 123,
         nburnin::Int64 = 500,
         niter::Int64 = 1_500,
@@ -260,17 +261,17 @@ Fit a Bayesian ridge regression model
 
 ## Examples
 ```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
-julia> genomes = GBCore.simulategenomes(n=10, l=1_000, verbose=false);
+julia> genomes = GBCore.simulategenomes(n=10, l=100, verbose=false);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
-julia> tebv = GBCore.analyse(trials, max_levels=5, max_time_per_model=2, verbose=false);
+julia> tebv = GBCore.analyse(trials, max_levels=20, max_time_per_model=2, verbose=false);
 
 julia> phenomes = tebv.phenomes[1];
 
-julia> fit = Suppressor.@suppress bayesian(genomes=genomes, phenomes=phenomes);
+julia> sol = Suppressor.@suppress bayesian(genomes=genomes, phenomes=phenomes);
 
-julia> fit.metrics["cor"] > 0.5
+julia> sol.metrics["cor"] > 0.5
 true
 ```
 """
@@ -279,6 +280,7 @@ function bayesian(;
     phenomes::Phenomes,
     trait_idx::Int64 = 1,
     turing_model::Function = turing_bayesG,
+    sampling_method::Int64 = 1,
     seed::Int64 = 123,
     nburnin::Int64 = 500,
     niter::Int64 = 1_500,
@@ -288,8 +290,8 @@ function bayesian(;
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
     # tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
     # phenomes = tebv.phenomes[1]
-    # trait_idx=1; turing_model::Function=turing_bayesG;
-    # seed = 123; nburnin = 500; niter = 1_500; verbose=false
+    # trait_idx=1; turing_model::Function=turing_bayesG; sampling_method = 1
+    # seed = 123; nburnin = 500; niter = 1_500; verbose=true
     # Merge genomes and phenomes keeping only common the entries
     if genomes.entries != phenomes.entries
         genomes, phenomes = GBCore.merge(genomes, phenomes, keep_all = false)
@@ -303,22 +305,36 @@ function bayesian(;
             ),
         )
     end
+    # Normalise explanatory and response variables
     G::Matrix{Float64} = genomes.allele_frequencies[idx, :]
     y::Vector{Float64} = phenomes.phenotypes[idx, trait_idx]
+    G = (G .- mean(G, dims = 2)) ./ std(G, dims = 2)
+    y = (y .- mean(y)) ./ std(y)
     # Instantiate output Fit
     fit = Fit(l = size(G, 2) + 1)
-    fit.model = "bayesRR"
+    fit.model = replace(string(turing_model), "turing_" => "")
     fit.b_hat_labels = vcat(["intercept"], genomes.loci_alleles)
     # MCMC
     rng::TaskLocalRNG = Random.seed!(seed)
     model = turing_model(G, y)
-    @time chain = Turing.sample(
-        rng,
-        model,
-        NUTS(nburnin, 0.5, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.2; adtype = AutoReverseDiff(compile = true)),
-        niter - nburnin,
-        progress = true,
-    )
+    if sampling_method == 1
+        sampling_function =
+            NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.2; adtype = AutoReverseDiff(compile = true))
+    elseif sampling_method == 2
+        sampling_function =
+            NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoReverseDiff(compile = true))
+    elseif sampling_method == 3
+        sampling_function =
+            NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoReverseDiff(compile = false))
+    elseif sampling_method == 4
+        sampling_function = NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoForwardDiff())
+    elseif sampling_method == 5
+        # May fail
+        sampling_function = NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoZygote())
+    else
+        sampling_function = NUTS()
+    end
+    chain = Turing.sample(rng, model, sampling_function, niter - nburnin, progress = verbose)
     # Use the mean paramter values after 150 burn-in iterations
     params = Turing.get_params(chain[(nburnin+1):end, :, :])
     b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims = 1)[:, :, 1], dims = 2)[:, 1])
@@ -339,3 +355,24 @@ function bayesian(;
     end
     fit
 end
+
+# using RCall, StatsBase, UnicodePlots
+# R"library(BGLR)"
+# X = genomes.allele_frequencies
+# y = phenomes.phenotypes[:,1]
+# model = "BayesA"
+# @rput(X)
+# @rput(y)
+# @rput(model)
+# @time R"sol = BGLR::BGLR(y=y, ETA=list(MRK=list(X=X, model=model, saveEffects=FALSE)), verbose=TRUE)"
+# R"bhat = sol$ETA$MRK$b"
+
+# @time sol = bayesian(genomes=genomes, phenomes=phenomes, turing_model=turing_bayesT, verbose=true)
+
+# @rget bhat
+
+# cor(X * bhat, y)
+# cor(X * sol.b_hat[2:end], y)
+
+# UnicodePlots.histogram(bhat)
+# UnicodePlots.histogram(sol.b_hat)
