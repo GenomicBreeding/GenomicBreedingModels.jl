@@ -48,16 +48,18 @@ performance::Dict{String, Float64} = metrics(y, y_pred)
 Turing.@model function turing_bayesG(G, y)
     # Set variance prior.
     σ² ~ Distributions.Exponential(1.0 / std(y))
+    # σ² ~ truncated(Normal(0, 1.0); lower=0)
     # Set intercept prior.
     intercept ~ Turing.Flat()
+    # intercept ~ Distributions.Normal(0.0, 1.0)
     # Set the priors on our coefficients.
     nfeatures = size(G, 2)
-    coefficients ~ Distributions.MvNormal(Distributions.Zeros(nfeatures), 100.0 .* I)
+    coefficients ~ Distributions.MvNormal(Distributions.Zeros(nfeatures), I)
     # Calculate all the mu terms.
     mu = intercept .+ G * coefficients
+    # Return the distrbution of the response variable, from which the likelihood will be derived
     return y ~ Distributions.MvNormal(mu, σ² * I)
 end
-
 
 """
 Turing specification of Bayesian linear regression using a Gaussian prior with varying variances

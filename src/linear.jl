@@ -245,19 +245,20 @@ function lasso(; genomes::Genomes, phenomes::Phenomes, trait_idx::Int64 = 1, ver
 end
 
 """
-    bayesian(;
+    bayesian(
+        turing_model::Function;
         genomes::Genomes,
         phenomes::Phenomes,
         trait_idx::Int64 = 1,
-        turing_model::Function = turing_bayesG,
+        sampler::String = ["NUTS", "HMC", "HMCDA", "MH", "PG"][1],
         sampling_method::Int64 = 1,
         seed::Int64 = 123,
-        nburnin::Int64 = 500,
-        niter::Int64 = 1_500,
+        n_burnin::Int64 = 500,
+        n_iter::Int64 = 1_500,
         verbose::Bool = false,
     )::Fit
 
-Fit a Bayesian ridge regression model
+Fit a Bayesian linear regression models via Turing.jl
 
 ## Examples
 ```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
@@ -269,21 +270,22 @@ julia> tebv = GBCore.analyse(trials, max_levels=20, max_time_per_model=2, verbos
 
 julia> phenomes = tebv.phenomes[1];
 
-julia> sol = Suppressor.@suppress bayesian(genomes=genomes, phenomes=phenomes);
+julia> sol = Suppressor.@suppress bayesian(turing_bayesG, genomes=genomes, phenomes=phenomes);
 
 julia> sol.metrics["cor"] > 0.5
 true
 ```
 """
-function bayesian(;
+function bayesian(
+    turing_model::Function;
     genomes::Genomes,
     phenomes::Phenomes,
     trait_idx::Int64 = 1,
-    turing_model::Function = turing_bayesG,
+    sampler::String = ["NUTS", "HMC", "HMCDA", "MH", "PG"][1],
     sampling_method::Int64 = 1,
     seed::Int64 = 123,
-    nburnin::Int64 = 500,
-    niter::Int64 = 1_500,
+    n_burnin::Int64 = 500,
+    n_iter::Int64 = 1_500,
     verbose::Bool = false,
 )::Fit
     # genomes = GBCore.simulategenomes(n=10, l=100)
@@ -291,7 +293,7 @@ function bayesian(;
     # tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
     # phenomes = tebv.phenomes[1]
     # trait_idx=1; turing_model::Function=turing_bayesG; sampling_method = 1
-    # seed = 123; nburnin = 500; niter = 1_500; verbose=true
+    # seed = 123; n_burnin = 500; n_iter = 1_500; verbose=true
     # Merge genomes and phenomes keeping only common the entries
     if genomes.entries != phenomes.entries
         genomes, phenomes = GBCore.merge(genomes, phenomes, keep_all = false)
@@ -317,26 +319,69 @@ function bayesian(;
     # MCMC
     rng::TaskLocalRNG = Random.seed!(seed)
     model = turing_model(G, y)
-    if sampling_method == 1
-        sampling_function =
-            NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.2; adtype = AutoReverseDiff(compile = true))
-    elseif sampling_method == 2
-        sampling_function =
-            NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoReverseDiff(compile = true))
-    elseif sampling_method == 3
-        sampling_function =
-            NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoReverseDiff(compile = false))
-    elseif sampling_method == 4
-        sampling_function = NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoForwardDiff())
-    elseif sampling_method == 5
-        # May fail
-        sampling_function = NUTS(nburnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoZygote())
+    if sampler == "NUTS"
+        if sampling_method == 1
+            sampling_function = NUTS(
+                n_burnin,
+                0.65,
+                max_depth = 5,
+                Δ_max = 1000.0,
+                init_ϵ = 0.2;
+                adtype = AutoReverseDiff(compile = true),
+            )
+        elseif sampling_method == 2
+            sampling_function = NUTS(
+                n_burnin,
+                0.65,
+                max_depth = 5,
+                Δ_max = 1000.0,
+                init_ϵ = 0.0;
+                adtype = AutoReverseDiff(compile = true),
+            )
+        elseif sampling_method == 3
+            sampling_function = NUTS(
+                n_burnin,
+                0.65,
+                max_depth = 5,
+                Δ_max = 1000.0,
+                init_ϵ = 0.0;
+                adtype = AutoReverseDiff(compile = false),
+            )
+        elseif sampling_method == 4
+            sampling_function =
+                NUTS(n_burnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoForwardDiff())
+        elseif sampling_method == 5
+            # May fail if the turing model has for-loop/s
+            sampling_function = NUTS(n_burnin, 0.65, max_depth = 5, Δ_max = 1000.0, init_ϵ = 0.0; adtype = AutoZygote())
+        else
+            sampling_function = NUTS()
+        end
+    elseif sampler == "HMC"
+        if sampling_method == 1
+            sampling_function = HMC(0.01, 10)
+        else
+            sampling_function = HMC()
+        end
+    elseif sampler == "HMCDA"
+        if sampling_method == 1
+            sampling_function = HMCDA(n_burnin, 0.65, 0.3)
+        else
+            sampling_function = HMCDA()
+        end
+    elseif sampler == "MH"
+        sampling_function = MH()
+    elseif sampler == "PG"
+        if sampling_method == 1
+            sampling_function = PG(5)
+        else
+            sampling_function = PG()
+        end
     else
-        sampling_function = NUTS()
+        throw(ArgumentError("Unrecognised sampler: `" * sampler * "`. Please choose NUTS, HMC, HMCDA, HM or PG."))
     end
-    chain = Turing.sample(rng, model, sampling_function, niter - nburnin, progress = verbose)
+    chain = Turing.sample(rng, model, sampling_function, n_iter - n_burnin, progress = verbose)
     # Use the mean paramter values after 150 burn-in iterations
-    params = Turing.get_params(chain[(nburnin+1):end, :, :])
+    params = Turing.get_params(chain[(n_burnin+1):end, :, :])
     b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims = 1)[:, :, 1], dims = 2)[:, 1])
     # Assess prediction accuracy
     y_pred::Vector{Float64} = hcat(ones(size(G, 1)), G) * b_hat
@@ -356,23 +401,93 @@ function bayesian(;
     fit
 end
 
-# using RCall, StatsBase, UnicodePlots
-# R"library(BGLR)"
-# X = genomes.allele_frequencies
-# y = phenomes.phenotypes[:,1]
-# model = "BayesA"
-# @rput(X)
-# @rput(y)
-# @rput(model)
-# @time R"sol = BGLR::BGLR(y=y, ETA=list(MRK=list(X=X, model=model, saveEffects=FALSE)), verbose=TRUE)"
-# R"bhat = sol$ETA$MRK$b"
+"""
+    bayesian(
+        bglr_model::String;
+        genomes::Genomes,
+        phenomes::Phenomes,
+        trait_idx::Int64 = 1,
+        n_burnin::Int64 = 500,
+        n_iter::Int64 = 1_500,
+        verbose::Bool = false,
+    )::Fit
 
-# @time sol = bayesian(genomes=genomes, phenomes=phenomes, turing_model=turing_bayesT, verbose=true)
+Fit a Bayesian linear regression models via BGLR in R
 
-# @rget bhat
+## Examples
+```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
+julia> genomes = GBCore.simulategenomes(n=10, l=100, verbose=false);
 
-# cor(X * bhat, y)
-# cor(X * sol.b_hat[2:end], y)
+julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
-# UnicodePlots.histogram(bhat)
-# UnicodePlots.histogram(sol.b_hat)
+julia> tebv = GBCore.analyse(trials, max_levels=20, max_time_per_model=2, verbose=false);
+
+julia> phenomes = tebv.phenomes[1];
+
+julia> sol = Suppressor.@suppress bayesian("BayesA", genomes=genomes, phenomes=phenomes);
+
+julia> sol.metrics["cor"] > 0.5
+true
+```
+"""
+function bayesian(
+    bglr_model::String;
+    genomes::Genomes,
+    phenomes::Phenomes,
+    trait_idx::Int64 = 1,
+    n_burnin::Int64 = 500,
+    n_iter::Int64 = 1_500,
+    verbose::Bool = false,
+)::Fit
+    # genomes = GBCore.simulategenomes(n=10, l=100)
+    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
+    # tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
+    # phenomes = tebv.phenomes[1]
+    # trait_idx=1; bglr_model = "BayesA"
+    # n_burnin = 500; n_iter = 1_500; verbose=true
+    # Merge genomes and phenomes keeping only common the entries
+    if genomes.entries != phenomes.entries
+        genomes, phenomes = GBCore.merge(genomes, phenomes, keep_all = false)
+    end
+    # Omit entries missing phenotype data and apply mask (for cross-validation purposes)
+    idx::Vector{Int64} = findall(ismissing.(phenomes.phenotypes[:, trait_idx]) .== false)
+    if length(idx) < 2
+        throw(
+            ArgumentError(
+                "There are less than 2 entries with non-missing phenotype data after merging with the genotype data.",
+            ),
+        )
+    end
+    # Normalise explanatory and response variables
+    G::Matrix{Float64} = genomes.allele_frequencies[idx, :]
+    y::Vector{Float64} = phenomes.phenotypes[idx, trait_idx]
+    G = (G .- mean(G, dims = 2)) ./ std(G, dims = 2)
+    y = (y .- mean(y)) ./ std(y)
+    # Instantiate output Fit
+    fit = Fit(l = size(G, 2))
+    fit.model = bglr_model
+    fit.b_hat_labels = genomes.loci_alleles
+    # R-BGLR
+    b_hat = bglr(G = G, y = y, model = bglr_model, n_iter = n_iter, n_burnin = n_burnin, verbose = verbose)
+    # Clean-up BGLR temp files
+    files = readdir()
+    for i in findall(match.(r".dat\$", files) .!= nothing)
+        rm(files[i])
+    end
+    # Assess prediction accuracy
+    y_pred::Vector{Float64} = G * b_hat
+    performance::Dict{String,Float64} = metrics(y, y_pred)
+    if verbose
+        UnicodePlots.scatterplot(y, y_pred)
+        UnicodePlots.histogram(y)
+        UnicodePlots.histogram(y_pred)
+        println(performance)
+    end
+    # Output
+    fit.b_hat = b_hat
+    fit.metrics = performance
+    if !checkdims(fit)
+        throw(ErrorException("Error fitting ridge."))
+    end
+    fit
+end
