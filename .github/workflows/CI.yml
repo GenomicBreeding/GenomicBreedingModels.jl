@@ -43,6 +43,7 @@ jobs:
         run: |
           install.packages("BGLR")
         shell: Rscript {0}
+      - run: echo "LD_LIBRARY_PATH=$(R RHOME)/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
   docs:
@@ -65,6 +66,7 @@ jobs:
         run: |
           install.packages("BGLR")
         shell: Rscript {0}
+      - run: echo "LD_LIBRARY_PATH=$(R RHOME)/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
       - name: Configure doc environment
         shell: julia --project=docs --color=yes {0}
         run: |
