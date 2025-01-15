@@ -4,6 +4,9 @@ catch
     throw(ErrorException("Please install the BGLR package in R."))
 end
 
+"""
+Bayesian models using BGLR, i.e. Bayes A, Bayes B and Bayes C
+"""
 function bglr(;
     G::Matrix{Float64},
     y::Vector{Float64},
@@ -17,7 +20,7 @@ function bglr(;
     # phenomes = extractphenomes(trials)
     # G::Matrix{Float64} = genomes.allele_frequencies
     # y::Vector{Float64} = phenomes.phenotypes[:, 1]
-    # model::String=["BayesA", "BayesB", "BayesC"][1]; n_iter::Int64=1_500; n_burnin::Int64=500; verbose::Bool=true
+    # model=["BayesA", "BayesB", "BayesC"][1]; n_iter=1_500; n_burnin=500; verbose=true
     @rput(G)
     @rput(y)
     @rput(model)
@@ -25,7 +28,7 @@ function bglr(;
     @rput(n_burnin)
     @rput(verbose)
     R"ETA = list(MRK=list(X=G, model=model, saveEffects=FALSE))"
-    @time R"sol = BGLR::BGLR(y=y, ETA=ETA, nIter=n_iter, burnIn=n_burnin, verbose=verbose)"
+    R"sol = BGLR::BGLR(y=y, ETA=ETA, nIter=n_iter, burnIn=n_burnin, verbose=verbose)"
     @rget(sol)
-    sol[:ETA][:MRK][:b]
+    vcat(sol[:mu], sol[:ETA][:MRK][:b])
 end
