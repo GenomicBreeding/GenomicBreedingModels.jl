@@ -11,6 +11,7 @@ function bglr(;
     G::Matrix{Float64},
     y::Vector{Float64},
     model::String = ["BayesA", "BayesB", "BayesC"][1],
+    response_type::String = ["gaussian", "ordinal"][1],
     n_iter::Int64 = 1_500,
     n_burnin::Int64 = 500,
     verbose::Bool = false,
@@ -20,15 +21,16 @@ function bglr(;
     # phenomes = extractphenomes(trials)
     # G::Matrix{Float64} = genomes.allele_frequencies
     # y::Vector{Float64} = phenomes.phenotypes[:, 1]
-    # model=["BayesA", "BayesB", "BayesC"][1]; n_iter=1_500; n_burnin=500; verbose=true
+    # model=["BayesA", "BayesB", "BayesC"][1]; response_type = ["gaussian", "ordinal"][1]; n_iter=10_500; n_burnin=100; verbose=true
     @rput(G)
     @rput(y)
     @rput(model)
+    @rput(response_type)
     @rput(n_iter)
     @rput(n_burnin)
     @rput(verbose)
     R"ETA = list(MRK=list(X=G, model=model, saveEffects=FALSE))"
-    R"sol = BGLR::BGLR(y=y, ETA=ETA, nIter=n_iter, burnIn=n_burnin, verbose=verbose)"
+    R"sol = BGLR::BGLR(y=y, ETA=ETA, response_type=response_type, nIter=n_iter, burnIn=n_burnin, verbose=verbose)"
     @rget(sol)
     vcat(sol[:mu], sol[:ETA][:MRK][:b])
 end

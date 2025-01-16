@@ -632,3 +632,20 @@ Turing.@model function turing_bayesTπ(G, y)
     mu = intercept .+ G * coefficients
     return y ~ Distributions.MvNormal(mu, σ² * I)
 end
+
+
+"""
+Turing specification of Bayesian logistic regression using a Gaussian prior with common variance
+"""
+@model function turing_bayesG_logit(G, y)
+    # Set intercept prior.
+    intercept ~ Turing.Flat()
+    # intercept ~ Distributions.Normal(0.0, 1.0)
+    # Set the priors on our coefficients.
+    n, nfeatures = size(G)
+    coefficients ~ Distributions.MvNormal(Distributions.Zeros(nfeatures), I)
+    v = 1 ./ (1 .+ exp.(-(intercept .+ G * coefficients)) .+ 1e-20)
+    for i = 1:n
+        y[i] ~ Bernoulli(v[i])
+    end
+end
