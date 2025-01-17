@@ -38,17 +38,8 @@ function validate(
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, verbose=false);
     # phenomes = extractphenomes(trials)
     # fit = ridge(genomes=genomes, phenomes=phenomes, idx_entries=collect(1:200))
-    # idx_validation = collect(201:300)
+    # idx_validation = collect(201:300); replication = ""; fold = "";
     idx_trait = findall(phenomes.traits .== fit.trait)[1]
-    idx_loci_alleles = try
-        [findall(genomes.loci_alleles .== x)[1] for x in fit.b_hat_labels[2:end]]
-    catch
-        throw(
-            ArgumentError(
-                "The loci-alleles in the fitted genomic prediction model do not match the loci-alleles in the requested validation set.",
-            ),
-        )
-    end
     data_leakage = intersect(fit.entries, phenomes.entries[idx_validation])
     if length(data_leakage) > 0
         throw(
@@ -57,16 +48,14 @@ function validate(
             ),
         )
     end
-    X, y, entries, populations, _loci_alleles = extractxyetc(
-        genomes,
-        phenomes,
-        idx_entries = idx_validation,
-        idx_loci_alleles = idx_loci_alleles,
-        idx_trait = idx_trait,
-    )
-    y_hat = X * fit.b_hat
-    performance = metrics(y, y_hat)
-    cv = CV(replication, fold, fit, populations, entries, y, y_hat, performance)
+    ϕ = phenomes.phenotypes[idx_validation, idx_trait]
+    idx = findall(.!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ))
+    populations = phenomes.populations[idx_validation[idx]]
+    entries = phenomes.entries[idx_validation[idx]]
+    y_true::Vector{Float64} = ϕ[idx]
+    y_pred::Vector{Float64} = GBModels.predict(fit = fit, genomes = genomes, idx_entries = idx_validation[idx])
+    performance = metrics(y_true, y_pred)
+    cv = CV(replication, fold, fit, populations, entries, y_true, y_pred, performance)
     if !checkdims(cv)
         throw(ArgumentError("CV struct is corrupted."))
     end
@@ -107,7 +96,7 @@ julia> cv_2 = CV("replication_1", "fold_2", fit, genomes.populations[idx_validat
 
 julia> cvs = [cv_1, cv_2]; models = [ridge, ridge];
 
-julia> cvmultithread!(cvs, genomes=genomes, phenomes=phenomes, models_vector=[ridge, ridge], verbose=false);
+julia> cvmultithread!(cvs, genomes=genomes, phenomes=phenomes, models_vector=[ridge, bayesa], verbose=false);
 
 julia> df_across_entries, df_per_entry = tabularise(cvs);
 
@@ -123,13 +112,20 @@ function cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, m
     # Cross-validate using all thread/s available to Julia (set at startup via julia --threads 2,1 --load test/interactive_prelude.jl)
     # TODO: multi-threaded execution with RCall results in segmentation fault.
     m = length(cvs)
+    # Multi-threaded CV for non-BGLR models
     if verbose
-        pb = Progress(m; desc = "Genomic prediction replicated cross-validation: ")
+        pb = Progress(
+            m;
+            desc = "Multi-threaded genomic prediction replicated cross-validation (excludes R's BGLR models): ",
+        )
     end
     thread_lock::ReentrantLock = ReentrantLock()
     Threads.@threads for i = 1:m
         # i = 1
         model = models_vector[i]
+        if sum([bayesa, bayesb, bayesc] .== model) > 0
+            continue
+        end
         idx_training = [findall(genomes.entries .== x)[1] for x in cvs[i].fit.entries]
         idx_validation = [findall(genomes.entries .== x)[1] for x in cvs[i].validation_entries]
         idx_loci_alleles = [findall(genomes.loci_alleles .== x)[1] for x in cvs[i].fit.b_hat_labels[2:end]]
@@ -154,7 +150,68 @@ function cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, m
             )
             @lock thread_lock cvs[i] = cv
         catch
-            @warn string("Oh naur! This is unexpected model fitting error! Model: ", model, "; i: ", i)
+            @warn string(
+                "Oh naur! This is unexpected multi-threaded model fitting error! Model: ",
+                model,
+                "; i: ",
+                i,
+                ". If you're a dev, please inspect the `",
+                model,
+                "(...)` and the `validate(...)` functions.",
+            )
+            continue
+        end
+        if verbose
+            next!(pb)
+        end
+    end
+    if verbose
+        finish!(pb)
+    end
+    # Single-threaded CV for BGLR models
+    if verbose
+        pb =
+            Progress(m; desc = "Single-threaded genomic prediction replicated cross-validation (for R's BGLR models): ")
+    end
+    for i = 1:m
+        # i = 1
+        model = models_vector[i]
+        if sum([bayesa, bayesb, bayesc] .== model) == 0
+            continue
+        end
+        idx_training = [findall(genomes.entries .== x)[1] for x in cvs[i].fit.entries]
+        idx_validation = [findall(genomes.entries .== x)[1] for x in cvs[i].validation_entries]
+        idx_loci_alleles = [findall(genomes.loci_alleles .== x)[1] for x in cvs[i].fit.b_hat_labels[2:end]]
+        idx_trait = findall(phenomes.traits .== cvs[i].fit.trait)[1]
+        replication = cvs[i].replication
+        fold = cvs[i].fold
+        try
+            fit = model(
+                genomes = genomes,
+                phenomes = phenomes,
+                idx_entries = idx_training,
+                idx_loci_alleles = idx_loci_alleles,
+                idx_trait = idx_trait,
+            )
+            cv = validate(
+                fit,
+                genomes,
+                phenomes,
+                idx_validation = idx_validation,
+                replication = replication,
+                fold = fold,
+            )
+            cvs[i] = cv
+        catch
+            @warn string(
+                "Oh naur! This is unexpected single-threaded model fitting error! Model: ",
+                model,
+                "; i: ",
+                i,
+                ". If you're a dev, please inspect the `",
+                model,
+                "(...)` and the `validate(...)` functions.",
+            )
             continue
         end
         if verbose
@@ -721,7 +778,7 @@ julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1
 
 julia> phenomes = extractphenomes(trials);
 
-julia> cvs, notes = cvleaveonepopulationout(genomes=genomes, phenomes=phenomes, models=[ols, ridge], n_replications=2, n_folds=2, verbose=false);
+julia> cvs, notes = cvleaveonepopulationout(genomes=genomes, phenomes=phenomes, models=[ridge, bayesa], n_replications=2, n_folds=2, verbose=false);
 
 julia> df_across_entries, df_per_entry = tabularise(cvs);
 
