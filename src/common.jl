@@ -8,7 +8,7 @@
         add_intercept::Bool = true,
     )::Tuple{Matrix{Float64},Vector{Float64},Vector{String}}
 
-Extract explanatory `X` matrix, and response `y` vector from genomes and phenomes.
+Extract explanatory `X` matrix, response `y` vector, names of the entries, populations and loci-alleles from genomes and phenomes.
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
@@ -34,12 +34,7 @@ function extractxyetc(
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     idx_trait::Int64 = 1,
     add_intercept::Bool = true,
-)::Tuple{
-    Matrix{Float64},
-    Vector{Float64},
-    Vector{String},
-    Vector{String},
-    Vector{String}}
+)::Tuple{Matrix{Float64},Vector{Float64},Vector{String},Vector{String},Vector{String}}
     # genomes = GBCore.simulategenomes()
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials)
@@ -179,7 +174,7 @@ function bayesian(
         add_intercept = false,
     )
     # Instantiate output Fit
-    fit = Fit(n=size(X,1), l = size(X, 2) + 1)
+    fit = Fit(n = size(X, 1), l = size(X, 2) + 1)
     fit.model = replace(string(turing_model), "turing_" => "")
     fit.b_hat_labels = vcat(["intercept"], loci_alleles)
     fit.trait = phenomes.traits[idx_trait]
@@ -326,7 +321,7 @@ function bayesian(
         add_intercept = true,
     )
     # Instantiate output Fit
-    fit = Fit(n=size(X,1), l = size(X, 2))
+    fit = Fit(n = size(X, 1), l = size(X, 2))
     fit.model = bglr_model
     fit.b_hat_labels = vcat(["intercept"], loci_alleles)
     fit.trait = phenomes.traits[idx_trait]

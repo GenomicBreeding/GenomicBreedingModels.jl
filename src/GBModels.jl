@@ -15,8 +15,7 @@ using ReverseDiff
 using RCall
 using Suppressor
 using ProgressMeter
-
-using DataFrames # tmp
+using DataFrames
 
 include("metrics.jl")
 include("common.jl")
@@ -34,6 +33,7 @@ export turing_bayesT, turing_bayesTπ
 export turing_bayesG_logit
 export bglr
 export ols, ridge, lasso, bayesa, bayesb, bayesc
-# export cvbulk
+export validate, cvmultithread!, cvbulk
+export cvperpopulation, cvpairwisepopulation, cvleaveonepopulationout
 
 end

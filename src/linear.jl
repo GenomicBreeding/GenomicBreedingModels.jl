@@ -50,7 +50,7 @@ function ols(;
         add_intercept = true,
     )
     # Instantiate output Fit
-    fit::Fit = Fit(n=size(X,1), l = size(X, 2))
+    fit::Fit = Fit(n = size(X, 1), l = size(X, 2))
     fit.model = "ols"
     fit.b_hat_labels = vcat(["intercept"], loci_alleles)
     fit.trait = phenomes.traits[idx_trait]
@@ -119,7 +119,7 @@ function ridge(;
     # genomes = GBCore.simulategenomes()
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials)
-    # idx_entries = nothing, idx_loci_alleles = nothing
+    # idx_entries = nothing; idx_loci_alleles = nothing
     # idx_trait = 1; verbose = true
     # Check arguments and extract X, y, and loci-allele names
     X, y, entries, populations, loci_alleles = extractxyetc(
@@ -128,10 +128,10 @@ function ridge(;
         idx_entries = idx_entries,
         idx_loci_alleles = idx_loci_alleles,
         idx_trait = idx_trait,
-        add_intercept = true,
+        add_intercept = false,
     )
     # Instantiate output Fit
-    fit::Fit = Fit(n=size(X,1), l = size(X, 2))
+    fit::Fit = Fit(n = size(X, 1), l = size(X, 2))
     fit.model = "ridge"
     fit.b_hat_labels = vcat(["intercept"], loci_alleles)
     fit.trait = phenomes.traits[idx_trait]
@@ -158,16 +158,17 @@ function ridge(;
         println(string("argmin = ", argmin(glmnet_fit.meanloss)))
     end
     # Use the coefficients with variance
-    b_hat::Vector{Float64} = GLMNet.coef(glmnet_fit)
-    i = 2
+    b_hat::Vector{Float64} = zeros(size(X, 2) + 1)
     idx_sort = sortperm(glmnet_fit.meanloss)
+    INTERCEPTSs = glmnet_fit.path.a0[idx_sort]
     BETAs = glmnet_fit.path.betas[:, idx_sort]
-    while var(b_hat) < 1e-10
-        b_hat = BETAs[:, i]
+    i = 1
+    while var(b_hat[2:end]) < 1e-10
+        b_hat = vcat(INTERCEPTSs[i], BETAs[:, i])
         i += 1
     end
     # Assess prediction accuracy
-    y_pred::Vector{Float64} = X * b_hat
+    y_pred::Vector{Float64} = b_hat[1] .+ (X * b_hat[2:end])
     performance::Dict{String,Float64} = metrics(y, y_pred)
     if verbose
         UnicodePlots.scatterplot(y, y_pred)
@@ -226,7 +227,7 @@ function lasso(;
     # genomes = GBCore.simulategenomes()
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials)
-    # idx_entries = nothing, idx_loci_alleles = nothing
+    # idx_entries = nothing; idx_loci_alleles = nothing
     # idx_trait = 1; verbose = true
     # Check arguments and extract X, y, and loci-allele names
     X, y, entries, populations, loci_alleles = extractxyetc(
@@ -235,17 +236,17 @@ function lasso(;
         idx_entries = idx_entries,
         idx_loci_alleles = idx_loci_alleles,
         idx_trait = idx_trait,
-        add_intercept = true,
+        add_intercept = false,
     )
     # Instantiate output Fit
-    fit::Fit = Fit(n=size(X,1), l = size(X, 2))
+    fit::Fit = Fit(n = size(X, 1), l = size(X, 2))
     fit.model = "lasso"
     fit.b_hat_labels = vcat(["intercept"], loci_alleles)
     fit.trait = phenomes.traits[idx_trait]
     fit.entries = entries
     fit.populations = populations
     fit.y_true = y
-    # Lasso regression using the glmnet package
+    # Ridge regression using the glmnet package
     glmnet_fit = GLMNet.glmnetcv(
         X,
         y,
@@ -265,16 +266,17 @@ function lasso(;
         println(string("argmin = ", argmin(glmnet_fit.meanloss)))
     end
     # Use the coefficients with variance
-    b_hat::Vector{Float64} = GLMNet.coef(glmnet_fit)
-    i = 2
+    b_hat::Vector{Float64} = zeros(size(X, 2) + 1)
     idx_sort = sortperm(glmnet_fit.meanloss)
+    INTERCEPTSs = glmnet_fit.path.a0[idx_sort]
     BETAs = glmnet_fit.path.betas[:, idx_sort]
-    while var(b_hat) < 1e-10
-        b_hat = BETAs[:, i]
+    i = 1
+    while var(b_hat[2:end]) < 1e-10
+        b_hat = vcat(INTERCEPTSs[i], BETAs[:, i])
         i += 1
     end
     # Assess prediction accuracy
-    y_pred::Vector{Float64} = X * b_hat
+    y_pred::Vector{Float64} = b_hat[1] .+ (X * b_hat[2:end])
     performance::Dict{String,Float64} = metrics(y, y_pred)
     if verbose
         UnicodePlots.scatterplot(y, y_pred)
@@ -332,12 +334,12 @@ function bayesa(;
 )::Fit
     fit = bayesian(
         "BayesA",
-        genomes=genomes,
-        phenomes=phenomes,
-        idx_entries=idx_entries,
-        idx_loci_alleles=idx_loci_alleles,
-        idx_trait=idx_trait,
-        response_type="gaussian",
+        genomes = genomes,
+        phenomes = phenomes,
+        idx_entries = idx_entries,
+        idx_loci_alleles = idx_loci_alleles,
+        idx_trait = idx_trait,
+        response_type = "gaussian",
         verbose = verbose,
     )
     fit.model = "bayesa"
@@ -384,12 +386,12 @@ function bayesb(;
 )::Fit
     fit = bayesian(
         "BayesB",
-        genomes=genomes,
-        phenomes=phenomes,
-        idx_entries=idx_entries,
-        idx_loci_alleles=idx_loci_alleles,
-        idx_trait=idx_trait,
-        response_type="gaussian",
+        genomes = genomes,
+        phenomes = phenomes,
+        idx_entries = idx_entries,
+        idx_loci_alleles = idx_loci_alleles,
+        idx_trait = idx_trait,
+        response_type = "gaussian",
         verbose = verbose,
     )
     fit.model = "bayesb"
@@ -436,12 +438,12 @@ function bayesc(;
 )::Fit
     fit = bayesian(
         "BayesC",
-        genomes=genomes,
-        phenomes=phenomes,
-        idx_entries=idx_entries,
-        idx_loci_alleles=idx_loci_alleles,
-        idx_trait=idx_trait,
-        response_type="gaussian",
+        genomes = genomes,
+        phenomes = phenomes,
+        idx_entries = idx_entries,
+        idx_loci_alleles = idx_loci_alleles,
+        idx_trait = idx_trait,
+        response_type = "gaussian",
         verbose = verbose,
     )
     fit.model = "bayesc"

@@ -22,15 +22,28 @@ function bglr(;
     # G::Matrix{Float64} = genomes.allele_frequencies
     # y::Vector{Float64} = phenomes.phenotypes[:, 1]
     # model=["BayesA", "BayesB", "BayesC"][1]; response_type = ["gaussian", "ordinal"][1]; n_iter=10_500; n_burnin=100; verbose=true
+    prefix_tmp_out = string(
+        model,
+        "-tmp-out-",
+        Int64(hash(string.(vcat(y, [model, response_type, n_iter, n_burnin, verbose])))),
+        "-",
+        Int64(round(rand() * 1_000_000)),
+    )
     @rput(G)
     @rput(y)
     @rput(model)
     @rput(response_type)
     @rput(n_iter)
     @rput(n_burnin)
+    @rput(prefix_tmp_out)
     @rput(verbose)
     R"ETA = list(MRK=list(X=G, model=model, saveEffects=FALSE))"
-    R"sol = BGLR::BGLR(y=y, ETA=ETA, response_type=response_type, nIter=n_iter, burnIn=n_burnin, verbose=verbose)"
+    R"sol = BGLR::BGLR(y=y, ETA=ETA, response_type=response_type, nIter=n_iter, burnIn=n_burnin, saveAt=prefix_tmp_out, verbose=verbose)"
     @rget(sol)
-    vcat(sol[:mu], sol[:ETA][:MRK][:b])
+    b_hat = vcat(sol[:mu], sol[:ETA][:MRK][:b])
+    # Clean-up
+    files = readdir()
+    rm.(files[match.(Regex(string("^", prefix_tmp_out)), files).!=nothing])
+    # Output
+    b_hat
 end
