@@ -65,7 +65,7 @@ Fit a Bayesian linear regression models via BGLR in R
 ```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -152,9 +152,8 @@ Turing specification of Bayesian linear regression using a Gaussian prior with c
 ```julia
 # Benchmarking
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
 model = turing_bayesG(G, y)
@@ -169,9 +168,8 @@ benchmarks = TuringBenchmarking.benchmark_model(
 
 # Test more loci
 genomes = GBCore.simulategenomes(n=10, l=10_000)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
 # Check for uninferred types in the model
@@ -182,9 +180,12 @@ model = turing_bayesG(G, y)
 rng::TaskLocalRNG = Random.seed!(123)
 niter::Int64 = 1_500
 nburnin::Int64 = 500
-@time chain = Turing.sample(rng, model, NUTS(nburnin, 0.5, max_depth=5, Δ_max=1000.0, init_ϵ=0.2; adtype=AutoReverseDiff(compile=true)), niter-nburnin, progress=true);
+@time chain = Turing.sample(rng, model, NUTS(nburnin, 0.65, max_depth=5, Δ_max=1000.0, init_ϵ=0.2; adtype=AutoReverseDiff(compile=true)), niter-nburnin, progress=true);
+# @time chain = Turing.sample(rng, model, HMC(0.05, 10; adtype=AutoReverseDiff(compile=true)), niter, progress=true);
+p = Plots.histogram(chain[:σ²])
+Plots.gui(p)
 # Use the mean paramter values after 150 burn-in iterations
-params = Turing.get_params(chain[150:end, :, :]);
+params = Turing.get_params(chain[501:end, :, :]);
 b_hat = vcat(mean(params.intercept), mean(stack(params.coefficients, dims=1)[:, :, 1], dims=2)[:,1]);
 # Assess prediction accuracy
 y_pred::Vector{Float64} = hcat(ones(size(G,1)), G) * b_hat;
@@ -195,13 +196,13 @@ performance::Dict{String, Float64} = metrics(y, y_pred)
 Turing.@model function turing_bayesG(G, y)
     # Set variance prior.
     σ² ~ Distributions.Exponential(1.0 / std(y))
-    # σ² ~ truncated(Normal(0, 1.0); lower=0)
+    # σ² ~ truncated(Normal(init["σ²"], 1.0); lower=0)
     # Set intercept prior.
     intercept ~ Turing.Flat()
-    # intercept ~ Distributions.Normal(0.0, 1.0)
+    # intercept ~ Distributions.Normal(init["b0"], 1.0)
     # Set the priors on our coefficients.
-    nfeatures = size(G, 2)
-    coefficients ~ Distributions.MvNormal(Distributions.Zeros(nfeatures), I)
+    # p = size(G, 2)
+    coefficients ~ Distributions.MvNormal(zeros(size(G, 2)), I)
     # Calculate all the mu terms.
     mu = intercept .+ G * coefficients
     # Return the distrbution of the response variable, from which the likelihood will be derived
@@ -215,9 +216,8 @@ Turing specification of Bayesian linear regression using a Gaussian prior with v
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -243,9 +243,9 @@ Turing.@model function turing_bayesGs(G, y)
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients.
-    nfeatures = size(G, 2)
-    s² ~ filldist(Distributions.Exponential(1.0), nfeatures)
-    coefficients ~ Distributions.MvNormal(Distributions.Zeros(nfeatures), s²)
+    p = size(G, 2)
+    s² ~ filldist(Distributions.Exponential(1.0), p)
+    coefficients ~ Distributions.MvNormal(Distributions.Zeros(p), s²)
     # Calculate all the mu terms.
     mu = intercept .+ G * coefficients
     return y ~ Distributions.MvNormal(mu, σ² * I)
@@ -316,9 +316,8 @@ Turing specification of Bayesian linear regression using a Gaussian prior with a
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -344,9 +343,9 @@ Turing.@model function turing_bayesGπ(G, y)
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients
-    nfeatures = size(G, 2)
+    p = size(G, 2)
     π ~ Distributions.Uniform(0.0, 1.0)
-    coefficients ~ filldist(NπDist(π, 0.0, 1.0), nfeatures)
+    coefficients ~ filldist(NπDist(π, 0.0, 1.0), p)
     # Calculate all the mu terms.
     mu = intercept .+ G * coefficients
     return y ~ Distributions.MvNormal(mu, σ² * I)
@@ -359,9 +358,8 @@ Turing specification of Bayesian linear regression using a Gaussian prior with a
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -387,11 +385,11 @@ Turing.@model function turing_bayesGπs(G, y, ::Type{T} = Float64) where {T<:Any
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients
-    nfeatures = size(G, 2)
+    p = size(G, 2)
     π ~ Distributions.Uniform(0.0, 1.0)
-    s² ~ filldist(Distributions.Exponential(1.0), nfeatures)
-    coefficients = Vector{T}(undef, nfeatures)
-    for i = 1:nfeatures
+    s² ~ filldist(Distributions.Exponential(1.0), p)
+    coefficients = Vector{T}(undef, p)
+    for i = 1:p
         coefficients[i] ~ NπDist(π, 0.0, s²[i])
     end
     # Calculate all the mu terms.
@@ -406,9 +404,8 @@ Turing specification of Bayesian linear regression using a Laplacian prior with 
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -434,8 +431,8 @@ Turing.@model function turing_bayesL(G, y)
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients.
-    nfeatures = size(G, 2)
-    coefficients ~ filldist(Distributions.Laplace(0.0, 1.0), nfeatures)
+    p = size(G, 2)
+    coefficients ~ filldist(Distributions.Laplace(0.0, 1.0), p)
     # Calculate all the mu terms.
     mu = intercept .+ G * coefficients
     return y ~ Distributions.MvNormal(mu, σ² * I)
@@ -449,9 +446,8 @@ Turing specification of Bayesian linear regression using a Laplacian prior with 
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -477,10 +473,10 @@ Turing.@model function turing_bayesLs(G, y, ::Type{T} = Float64) where {T<:Any}
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients.
-    nfeatures = size(G, 2)
-    b ~ filldist(Distributions.Exponential(1.0), nfeatures)
-    coefficients = Vector{T}(undef, nfeatures)
-    for i = 1:nfeatures
+    p = size(G, 2)
+    b ~ filldist(Distributions.Exponential(1.0), p)
+    coefficients = Vector{T}(undef, p)
+    for i = 1:p
         coefficients[i] ~ Distributions.Laplace(0.0, b[i])
     end
     # Calculate all the mu terms.
@@ -553,9 +549,8 @@ Turing specification of Bayesian linear regression using a Laplacian prior with 
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -581,9 +576,9 @@ Turing.@model function turing_bayesLπ(G, y)
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients
-    nfeatures = size(G, 2)
+    p = size(G, 2)
     π ~ Distributions.Uniform(0.0, 1.0)
-    coefficients ~ filldist(LπDist(π, 0.0, 1.0), nfeatures)
+    coefficients ~ filldist(LπDist(π, 0.0, 1.0), p)
     # Calculate all the mu terms.
     mu = intercept .+ G * coefficients
     return y ~ Distributions.MvNormal(mu, σ² * I)
@@ -596,9 +591,8 @@ Turing specification of Bayesian linear regression using a Laplacian prior with 
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -624,11 +618,11 @@ Turing.@model function turing_bayesLπs(G, y, ::Type{T} = Float64) where {T<:Any
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients
-    nfeatures = size(G, 2)
+    p = size(G, 2)
     π ~ Distributions.Uniform(0.0, 1.0)
-    b ~ filldist(Distributions.Exponential(1.0), nfeatures)
-    coefficients = Vector{T}(undef, nfeatures)
-    for i = 1:nfeatures
+    b ~ filldist(Distributions.Exponential(1.0), p)
+    coefficients = Vector{T}(undef, p)
+    for i = 1:p
         coefficients[i] ~ LπDist(π, 0.0, b[i])
     end
     # Calculate all the mu terms.
@@ -645,9 +639,8 @@ Turing specification of Bayesian linear regression using a T-distribution
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -673,8 +666,8 @@ Turing.@model function turing_bayesT(G, y)
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients.
-    nfeatures = size(G, 2)
-    coefficients ~ filldist(Distributions.TDist(1.0), nfeatures)
+    p = size(G, 2)
+    coefficients ~ filldist(Distributions.TDist(1.0), p)
     mu = intercept .+ G * coefficients
     return y ~ Distributions.MvNormal(mu, σ² * I)
 end
@@ -744,9 +737,8 @@ Turing specification of Bayesian linear regression using a T-distribution with a
 ```julia
 # Simulate data
 genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=3, f_add_dom_epi=[0.9 0.01 0.00;])
-tebv = GBCore.analyse(trials, max_levels = 15, max_time_per_model = 2)
-phenomes = tebv.phenomes[1]
+trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -772,9 +764,9 @@ Turing.@model function turing_bayesTπ(G, y)
     # Set intercept prior.
     intercept ~ Turing.Flat()
     # Set the priors on our coefficients
-    nfeatures = size(G, 2)
+    p = size(G, 2)
     π ~ Distributions.Uniform(0.0, 1.0)
-    coefficients ~ filldist(TπDist(π, 1.0), nfeatures)
+    coefficients ~ filldist(TπDist(π, 1.0), p)
     # Calculate all the mu terms.
     mu = intercept .+ G * coefficients
     return y ~ Distributions.MvNormal(mu, σ² * I)
@@ -789,8 +781,8 @@ Turing specification of Bayesian logistic regression using a Gaussian prior with
     intercept ~ Turing.Flat()
     # intercept ~ Distributions.Normal(0.0, 1.0)
     # Set the priors on our coefficients.
-    n, nfeatures = size(G)
-    coefficients ~ Distributions.MvNormal(Distributions.Zeros(nfeatures), I)
+    n, p = size(G)
+    coefficients ~ Distributions.MvNormal(Distributions.Zeros(p), I)
     v = 1 ./ (1 .+ exp.(-(intercept .+ G * coefficients)) .+ 1e-20)
     for i = 1:n
         y[i] ~ Bernoulli(v[i])
@@ -816,11 +808,18 @@ Fit a Bayesian linear regression models via Turing.jl
 ```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
 julia> sol = Suppressor.@suppress bayesian(turing_bayesG, genomes=genomes, phenomes=phenomes);
+
+julia> # Slow because not multivariate T-dist: sol_T = Suppressor.@suppress bayesian(turing_bayesT, genomes=genomes, phenomes=phenomes);
+
+julia> # Even slower because of an extra set of distribution to define a non-spherical variance-covariance matrix: sol_Gs = Suppressor.@suppress bayesian(turing_bayesGs, genomes=genomes, phenomes=phenomes);
+
+julia> sol_BGLR = Suppressor.@suppress bayesian("BayesA", genomes=genomes, phenomes=phenomes); sol.metrics["cor"] > sol_BGLR.metrics["cor"]
+true
 
 julia> sol.metrics["cor"] > 0.5
 true
