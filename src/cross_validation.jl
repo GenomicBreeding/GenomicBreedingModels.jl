@@ -123,9 +123,9 @@ function cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, m
     Threads.@threads for i = 1:m
         # i = 1
         model = models_vector[i]
-        if sum([bayesa, bayesb, bayesc] .== model) > 0
-            continue
-        end
+        # if sum([bayesa, bayesb, bayesc] .== model) > 0
+        #     continue
+        # end
         idx_training = [findall(genomes.entries .== x)[1] for x in cvs[i].fit.entries]
         idx_validation = [findall(genomes.entries .== x)[1] for x in cvs[i].validation_entries]
         idx_loci_alleles = [findall(genomes.loci_alleles .== x)[1] for x in cvs[i].fit.b_hat_labels[2:end]]
@@ -168,59 +168,59 @@ function cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, m
     if verbose
         finish!(pb)
     end
-    # Single-threaded CV for BGLR models
-    if verbose
-        pb =
-            Progress(m; desc = "Single-threaded genomic prediction replicated cross-validation (for R's BGLR models): ")
-    end
-    for i = 1:m
-        # i = 1
-        model = models_vector[i]
-        if sum([bayesa, bayesb, bayesc] .== model) == 0
-            continue
-        end
-        idx_training = [findall(genomes.entries .== x)[1] for x in cvs[i].fit.entries]
-        idx_validation = [findall(genomes.entries .== x)[1] for x in cvs[i].validation_entries]
-        idx_loci_alleles = [findall(genomes.loci_alleles .== x)[1] for x in cvs[i].fit.b_hat_labels[2:end]]
-        idx_trait = findall(phenomes.traits .== cvs[i].fit.trait)[1]
-        replication = cvs[i].replication
-        fold = cvs[i].fold
-        try
-            fit = model(
-                genomes = genomes,
-                phenomes = phenomes,
-                idx_entries = idx_training,
-                idx_loci_alleles = idx_loci_alleles,
-                idx_trait = idx_trait,
-            )
-            cv = validate(
-                fit,
-                genomes,
-                phenomes,
-                idx_validation = idx_validation,
-                replication = replication,
-                fold = fold,
-            )
-            cvs[i] = cv
-        catch
-            @warn string(
-                "Oh naur! This is unexpected single-threaded model fitting error! Model: ",
-                model,
-                "; i: ",
-                i,
-                ". If you're a dev, please inspect the `",
-                model,
-                "(...)` and the `validate(...)` functions.",
-            )
-            continue
-        end
-        if verbose
-            next!(pb)
-        end
-    end
-    if verbose
-        finish!(pb)
-    end
+    # # Single-threaded CV for BGLR models
+    # if verbose
+    #     pb =
+    #         Progress(m; desc = "Single-threaded genomic prediction replicated cross-validation (for R's BGLR models): ")
+    # end
+    # for i = 1:m
+    #     # i = 1
+    #     model = models_vector[i]
+    #     if sum([bayesa, bayesb, bayesc] .== model) == 0
+    #         continue
+    #     end
+    #     idx_training = [findall(genomes.entries .== x)[1] for x in cvs[i].fit.entries]
+    #     idx_validation = [findall(genomes.entries .== x)[1] for x in cvs[i].validation_entries]
+    #     idx_loci_alleles = [findall(genomes.loci_alleles .== x)[1] for x in cvs[i].fit.b_hat_labels[2:end]]
+    #     idx_trait = findall(phenomes.traits .== cvs[i].fit.trait)[1]
+    #     replication = cvs[i].replication
+    #     fold = cvs[i].fold
+    #     try
+    #         fit = model(
+    #             genomes = genomes,
+    #             phenomes = phenomes,
+    #             idx_entries = idx_training,
+    #             idx_loci_alleles = idx_loci_alleles,
+    #             idx_trait = idx_trait,
+    #         )
+    #         cv = validate(
+    #             fit,
+    #             genomes,
+    #             phenomes,
+    #             idx_validation = idx_validation,
+    #             replication = replication,
+    #             fold = fold,
+    #         )
+    #         cvs[i] = cv
+    #     catch
+    #         @warn string(
+    #             "Oh naur! This is unexpected single-threaded model fitting error! Model: ",
+    #             model,
+    #             "; i: ",
+    #             i,
+    #             ". If you're a dev, please inspect the `",
+    #             model,
+    #             "(...)` and the `validate(...)` functions.",
+    #         )
+    #         continue
+    #     end
+    #     if verbose
+    #         next!(pb)
+    #     end
+    # end
+    # if verbose
+    #     finish!(pb)
+    # end
     cvs
 end
 
