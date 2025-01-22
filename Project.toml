@@ -25,8 +25,9 @@ Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 TuringBenchmarking = "0db1332d-5c25-4deb-809f-459bc696f94f"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
-[sources]
-GBCore = {rev = "main", url = "https://github.com/GenomicBreeding/GBCore.jl"}
+[sources.GBCore]
+rev = "main"
+url = "https://github.com/GenomicBreeding/GBCore.jl"
 
 [compat]
 BenchmarkTools = "1.6.0"
@@ -46,7 +47,7 @@ ReverseDiff = "1.15.3"
 Statistics = "1.11.1"
 StatsBase = "0.34.4"
 Suppressor = "0.2.8"
-Turing = "0.35.5"
+Turing = "0.35.5, 0.36"
 TuringBenchmarking = "0.5.7"
 UnicodePlots = "3.7.1"
 julia = "1.11"
