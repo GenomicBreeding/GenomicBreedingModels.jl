@@ -59,11 +59,7 @@ function transform1(
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing; 
     # n_new_features_per_transformation = 1_000; ϵ = eps(Float64); use_abs = true; σ²_threshold = 0.01; verbose = true;
-    # Check arguments
-    if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
-    end
-    # Extract the allele frequencies matrix, etc, while checking the rest of the arguments
+    # Extract the allele frequencies matrix, etc, while checking the arguments
     X, y, entries, populations, loci_alleles = extractxyetc(
         genomes,
         phenomes,
@@ -79,7 +75,8 @@ function transform1(
         X = abs.(X)
     end
     # Instantiate the effects of each locus-allele combination as well as the single locus-allele genomes and the corresponding single trait phenomes for iterative OLS
-    β = zeros(size(X, 2))
+    l = size(X, 2)
+    β = zeros(l)
     g = Genomes(n = size(X, 1), p = 1)
     g.entries = genomes.entries
     g.populations = genomes.populations
@@ -89,10 +86,11 @@ function transform1(
     p.phenotypes[:, 1] = y
     # Apply the transformation iteratively so that we do not run our of memory
     if verbose
-        pb = ProgressMeter.Progress(l^2; desc = "Transformation of individual allele frequencies: ")
+        pb = ProgressMeter.Progress(l; desc = "Transformation of individual allele frequencies (" * string(f) * "): ")
     end
     for j in eachindex(β)
         # j = 1
+        # print(j)
         x = X[:, j]
         if var(x) < σ²_threshold
             if verbose
@@ -135,11 +133,17 @@ function transform1(
             append!(idx, j)
         end
     end
+    # Set values below ϵ to zero and 1+ϵ to one
+    T = f.(X[:, idx])
+    idx_zero = findall(abs.(T) .< ϵ)
+    T[idx_zero] .= 0.0
+    idx_one = findall(abs.(T .- 1) .< ϵ)
+    T[idx_one] .= 1.0
     # Output
     out = Genomes(n = size(X, 1), p = length(idx))
     out.entries = entries
     out.populations = populations
-    out.allele_frequencies = f.(X[:, idx])
+    out.allele_frequencies = T
     out.loci_alleles = string.(f, "(", loci_alleles[idx], ")")
     if !checkdims(out)
         throw(ErrorException("Error transforming each locus using the function `" * string(f) * "`."))
@@ -181,7 +185,7 @@ julia> idx_1 = findall(genomes.loci_alleles .== split(split(replace(genomes_tran
 
 julia> idx_2 = findall(genomes.loci_alleles .== split(split(replace(genomes_transformed.loci_alleles[1], ")" => ""), "(")[2], ",")[2])[1];
 
-julia> mean((genomes.allele_frequencies[:,idx_1].^2 .+ sqrt.(genomes.allele_frequencies[:,idx_2])) ./ 2 .- genomes_transformed.allele_frequencies[:,idx_2]) < 1e-10
+julia> mean((genomes.allele_frequencies[:,idx_1].^2 .+ sqrt.(genomes.allele_frequencies[:,idx_2])) ./ 2 .- genomes_transformed.allele_frequencies[:,1]) < 1e-10
 true
 
 julia> raisexbyythenlog(x, y) = log(abs(x^y));
@@ -192,7 +196,7 @@ julia> idx_1 = findall(genomes.loci_alleles .== split(split(replace(genomes_tran
 
 julia> idx_2 = findall(genomes.loci_alleles .== split(split(replace(genomes_transformed.loci_alleles[1], ")" => ""), "(")[2], ",")[2])[1];
 
-julia> mean(raisexbyythenlog.(genomes.allele_frequencies[:,idx_1], genomes.allele_frequencies[:,idx_2]) .- genomes_transformed.allele_frequencies[:,idx_2]) < 1e-10
+julia> mean(raisexbyythenlog.(genomes.allele_frequencies[:,idx_1], genomes.allele_frequencies[:,idx_2]) .- genomes_transformed.allele_frequencies[:,1]) < 1e-10
 true
 ```
 """
@@ -211,15 +215,11 @@ function transform2(
     verbose::Bool = false,
 )::Genomes
     # f=(x,y) -> (x^2 + sqrt(y)) / 2;
-    # genomes = GBCore.simulategenomes()
+    # genomes = GBCore.simulategenomes(l=1_000)
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing; 
     # n_new_features_per_transformation = 1_000; ϵ = eps(Float64); use_abs = true; σ²_threshold = 0.01; commutative = false; verbose = true;
-    # Check arguments
-    if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
-    end
-    # Extract the allele frequencies matrix, etc, while checking the rest of the arguments
+    # Extract the allele frequencies matrix, etc, while checking the arguments
     X, y, entries, populations, loci_alleles = extractxyetc(
         genomes,
         phenomes,
@@ -247,12 +247,13 @@ function transform2(
     p.phenotypes[:, 1] = y
     # Apply the transformation iteratively so that we do not run our of memory
     if verbose
-        pb = ProgressMeter.Progress(l^2; desc = "Pairwise transformation of allele frequencies: ")
+        pb = ProgressMeter.Progress(l^2; desc = "Pairwise transformation of allele frequencies (" * string(f) * "): ")
     end
     counter = 0
     for i = 1:l
         for j = 1:l
             # i = 1; j = 5
+            # println(string("i=", i, "; j=", j))
             counter += 1
             if commutative && (j < i)
                 if verbose
@@ -322,8 +323,11 @@ function transform2(
     end
     for (indexer, counter) in enumerate(idx)
         # indexer = 1; counter = idx[indexer]
-        i = Int(floor(counter / l))
-        j = counter % l
+        i = 1 + (Int(floor((counter - 1) / l))) # This is one of the reasons why starting indexes at zero may be better
+        j = 1 + ((counter - 1) % l) # This is one of the reasons why starting indexes at zero may be better
+        if j == 0
+            j = l
+        end
         T[:, indexer] = f.(X[:, i], X[:, j])
         feature_names[indexer] = string(f, "(", loci_alleles[i], ",", loci_alleles[j], ")")
         if verbose
@@ -333,6 +337,11 @@ function transform2(
     if verbose
         ProgressMeter.finish!(pb)
     end
+    # Set values below ϵ to zero and 1+ϵ to one
+    idx_zero = findall(abs.(T) .< ϵ)
+    T[idx_zero] .= 0.0
+    idx_one = findall(abs.(T .- 1) .< ϵ)
+    T[idx_one] .= 1.0
     # Output
     out.allele_frequencies = T
     out.loci_alleles = feature_names
@@ -342,12 +351,22 @@ function transform2(
     out
 end
 
+"""
+    string2operations(x)
+
+Macro to `Meta.parse` a string of formula.
+"""
+macro string2operations(x)
+    Meta.parse(string("$(x)"))
+end
+
+# Transformations which maps into the same zero to one domain
+square(x) = x^2
 sqrtabs(x) = sqrt(abs(x))
-log10abseps(x) = log10(abs(x) + eps(Float64))
-inveps(x) = 1 / (x + eps(Float64))
+log10epsdivlog10eps(x) = (log10(abs(x) + eps(Float64))) / log10(eps(Float64))
 
 mult(x, y) = x * y
-add(x, y) = x + y
+addnorm(x, y) = (x + y) / 2.0
 raise(x, y) = x^y
 
 function epistasisfeatures(
@@ -356,51 +375,172 @@ function epistasisfeatures(
     idx_trait::Int64 = 1,
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
-    transformations1::Vector{Function} = [sqrtabs, log10abseps, inveps],
-    transformations2::Vector{Function} = [mult, add, raise],
+    transformations1::Vector{Function} = [square, sqrtabs, log10epsdivlog10eps],
+    transformations2::Vector{Function} = [mult, addnorm, raise],
     n_new_features_per_transformation::Int64 = 1_000,
     n_reps::Int64 = 3,
+    verbose::Bool = false,
 )::Genomes
     # genomes = GBCore.simulategenomes(l=1_000)
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing;
-    # transformations1 = [sqrtabs, log10abseps, inveps]
-    # transformations2 = [mult, add, raise]
-    # n_new_features_per_transformation = 100
-    # n_reps = 3
-
-
+    # transformations1 = [square, sqrtabs, log10epsdivlog10eps]
+    # transformations2 = [mult, addnorm, raise]
+    # n_new_features_per_transformation = 100; n_reps = 3; verbose = true
+    # Check arguments
+    if !checkdims(genomes) && !checkdims(phenomes)
+        throw(ArgumentError("The Genomes and Phenomes structs are corrupted."))
+    end
+    if !checkdims(genomes)
+        throw(ArgumentError("The Genomes struct is corrupted."))
+    end
+    if !checkdims(phenomes)
+        throw(ArgumentError("The Phenomes struct is corrupted."))
+    end
+    if genomes.entries != phenomes.entries
+        throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
+    end
     if isnothing(idx_entries)
         idx_entries = collect(1:length(genomes.entries))
+    else
+        if (minimum(idx_entries) < 1) .|| maximum(idx_entries) > length(genomes.entries)
+            throw(
+                ArgumentError(
+                    "The indexes of the entries, `idx_entries` are out of bounds. Expected range: from 1 to " *
+                    string(length(genomes.entries)) *
+                    " while the supplied range is from " *
+                    string(minimum(idx_entries)) *
+                    " to " *
+                    string(maximum(idx_entries)) *
+                    ".",
+                ),
+            )
+        end
     end
     if isnothing(idx_loci_alleles)
         idx_loci_alleles = collect(1:length(genomes.loci_alleles))
+    else
+        if (minimum(idx_loci_alleles) < 1) .|| maximum(idx_loci_alleles) > length(genomes.loci_alleles)
+            throw(
+                ArgumentError(
+                    "The indexes of the loci_alleles, `idx_loci_alleles` are out of bounds. Expected range: from 1 to " *
+                    string(length(genomes.loci_alleles)) *
+                    " while the supplied range is from " *
+                    string(minimum(idx_loci_alleles)) *
+                    " to " *
+                    string(maximum(idx_loci_alleles)) *
+                    ".",
+                ),
+            )
+        end
     end
-
-    γ = slice(genomes, idx_entries=idx_entries, idx_loci_alleles=idx_loci_alleles)
-    ϕ = slice(phenomes, idx_entries=idx_entries, idx_traits=[idx_trait])
-
+    # Instantiate the output genomes struct and the input phenomes struct including only the current selected trait
+    genomes = slice(genomes, idx_entries = idx_entries, idx_loci_alleles = idx_loci_alleles)
+    phenomes = slice(phenomes, idx_entries = idx_entries, idx_traits = [idx_trait])
+    # Generate the new features
+    if verbose
+        pb = ProgressMeter.Progress(
+            n_reps * (length(transformations1) + length(transformations2)),
+            desc = "Generating new features: ",
+        )
+    end
     for r = 1:n_reps
-        for t1 in transformations1
-            # t1 = transformations1[1]
-            g = transform1(t1, γ, ϕ, n_new_features_per_transformation=n_new_features_per_transformation)
-            idx_new_loci_alleles = [findall(g.loci_alleles .== x)[1] for x in setdiff(g.loci_alleles, γ.loci_alleles)]
-            append!(γ.loci_alleles, g.loci_alleles[idx_new_loci_alleles])
-            γ.allele_frequencies = hcat(γ.allele_frequencies, g.allele_frequencies[:, idx_new_loci_alleles])
-            γ.mask = hcat(γ.mask, g.mask[:, idx_new_loci_alleles])
-            @show dimensions(γ)
-        end
-        for t2 in transformations2
-            # t2 = transformations2[1]
-            g = transform2(t2, γ, ϕ, n_new_features_per_transformation=n_new_features_per_transformation)
-            idx_new_loci_alleles = [findall(g.loci_alleles .== x)[1] for x in setdiff(g.loci_alleles, γ.loci_alleles)]
-            append!(γ.loci_alleles, g.loci_alleles[idx_new_loci_alleles])
-            γ.allele_frequencies = hcat(γ.allele_frequencies, g.allele_frequencies[:, idx_new_loci_alleles])
-            γ.mask = hcat(γ.mask, g.mask[:, idx_new_loci_alleles])
-            @show dimensions(γ)
+        for f in vcat(transformations1, transformations2)
+            # f = transformations1[1]
+            # f = transformations2[1]
+            g = if f ∈ transformations1
+                transform1(
+                    f,
+                    genomes,
+                    phenomes,
+                    n_new_features_per_transformation = n_new_features_per_transformation,
+                    verbose = false,
+                )
+            else
+                transform2(
+                    f,
+                    genomes,
+                    phenomes,
+                    n_new_features_per_transformation = n_new_features_per_transformation,
+                    verbose = false,
+                )
+            end
+            idx_new_loci_alleles =
+                [findall(g.loci_alleles .== x)[1] for x in setdiff(g.loci_alleles, genomes.loci_alleles)]
+            append!(genomes.loci_alleles, g.loci_alleles[idx_new_loci_alleles])
+            genomes.allele_frequencies = hcat(genomes.allele_frequencies, g.allele_frequencies[:, idx_new_loci_alleles])
+            genomes.mask = hcat(genomes.mask, g.mask[:, idx_new_loci_alleles])
+            if verbose
+                ProgressMeter.next!(pb)
+            end
+            if (minimum(genomes.allele_frequencies) < 0.0) || (abs(maximum(genomes.allele_frequencies) - 1) > 1e-12)
+                throw(
+                    ErrorException(
+                        "The function `" *
+                        string(f) *
+                        "` generates values outside the expected range of zero to one. Please replace with an appropriate transforamtion function.",
+                    ),
+                )
+            end
         end
     end
+    if verbose
+        ProgressMeter.finish!(pb)
+    end
+
+    # # Misc: tests
+    # GBCore.plot(genomes) # we want as little highly correlated features as possible
+
+    # dimensions(genomes)
+    # cvs, notes = cvbulk(genomes=genomes, phenomes=phenomes, models=[ridge, lasso, bayesa], verbose=true)
+    # df_across, df_per_entry = GBCore.tabularise(cvs)
+    # combine(groupby(df_across, [:trait, :model]), [:cor] => mean)
+
+
+    # Output
+    if !checkdims(genomes)
+        throw(ErrorException("Error generating new features."))
+    end
+    genomes
 
 end
 
-function reconstitutefeatures() end
+
+
+function reconstitutefeatures(genomes::Genomes, feature_names::Vector{String})::Genomes
+    # genomes = GBCore.simulategenomes(l=1_000, verbose=false);
+    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+    # phenomes = extractphenomes(trials);
+    # f1(x) = x^2;
+    # f2(x,y) = (x^2 + sqrt(y)) / 2;
+    # genomes_transformed = transform2(f2, transform1(f1, genomes, phenomes), phenomes);
+    # feature_names = genomes_transformed.loci_alleles;
+    # Check arguments
+    if !checkdims(genomes)
+        throw(ArgumentError("The Genomes struct is corrupted."))
+    end
+
+    out = Genomes(n = length(genomes.entries), p = length(feature_names))
+    out.entries = genomes.entries
+    out.populations = genomes.populations
+    out.loci_alleles = feature_names
+    for (j, name) in enumerate(feature_names)
+        # name = feature_names[1]
+        operations = vcat(split.(split(replace(name, ")" => ""), "("), ",")...)
+        idx_loci_alleles = [findall(genomes.loci_alleles .== x) for x in operations]
+        for (i, idx) in enumerate(idx_loci_alleles)
+            # i = 3; idx=idx_loci_alleles[i]
+            if length(idx) == 1
+                name = replace(name, operations[i] => string("genomes.allele_frequencies[:,", idx[1], "]"))
+            end
+        end
+        name = replace(name, "(" => ".(")
+        out.allele_frequencies[:, j] = @eval(@string2operations $(name))
+    end
+    if !checkdims(out)
+        throw(ErrorException("Error reconstituting features."))
+    end
+    dimensions(out)
+    out == genomes_transformed
+    out
+end

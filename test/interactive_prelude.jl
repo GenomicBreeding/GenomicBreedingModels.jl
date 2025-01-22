@@ -1,6 +1,10 @@
 using Pkg
 Pkg.activate(".")
-Pkg.add(url = "https://github.com/GenomicBreeding/GBCore.jl")
+try
+    Pkg.add(url = "https://github.com/GenomicBreeding/GBCore.jl")
+catch
+    nothing
+end
 using GBModels
 using GBCore
 using LinearAlgebra
