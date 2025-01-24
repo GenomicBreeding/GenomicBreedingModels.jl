@@ -13,6 +13,7 @@ using Turing
 using BenchmarkTools, TuringBenchmarking
 using ReverseDiff
 using RCall
+using DataFrames
 using Suppressor
 using ProgressMeter
 using DataFrames
@@ -28,7 +29,7 @@ include("cross_validation.jl")
 export metrics
 export extractxyetc, predict
 export square, invoneplus, log10epsdivlog10eps, mult, addnorm, raise
-export transform1, transform2, epistasisfeatures, reconstitutefeatures
+export transform1, transform2, epistasisfeatures, @string2operations, reconstitutefeatures
 export bglr, bayesian
 export turing_bayesG, turing_bayesGs, turing_bayesGπ, turing_bayesGπs
 export turing_bayesL, turing_bayesLs, turing_bayesLπ, turing_bayesLπs
