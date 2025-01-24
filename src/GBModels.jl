@@ -27,8 +27,8 @@ include("cross_validation.jl")
 
 export metrics
 export extractxyetc, predict
-export square, sqrtabs, log10epsdivlog10eps, mult, addnorm, raise
-export transform1, transform2, epistasisfeatures, @string2operations, reconstitutefeatures
+export square, invoneplus, log10epsdivlog10eps, mult, addnorm, raise
+export transform1, transform2, epistasisfeatures, reconstitutefeatures
 export bglr, bayesian
 export turing_bayesG, turing_bayesGs, turing_bayesGπ, turing_bayesGπs
 export turing_bayesL, turing_bayesLs, turing_bayesLπ, turing_bayesLπs

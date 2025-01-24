@@ -7,11 +7,11 @@ An endofunction within the zero to one domain which accepts a single input and s
 square(x) = x^2
 
 """
-    sqrtabs(x) = sqrt(abs(x))
+    invoneplus(x) = sqrt(abs(x))
 
-An endofunction within the zero to one domain which accepts a single input and finds the square-root of its absolute value.
+An endofunction within the zero to one domain which accepts a single input and takes the inverse of one plus the input.
 """
-sqrtabs(x) = sqrt(abs(x))
+invoneplus(x) = 1 / (1 + x)
 
 """
     log10epsdivlog10eps(x)
@@ -60,7 +60,7 @@ Apply a function to each allele frequency in genomes.
 Please Use named functions if you wish to reconstruct the transformation from the `loci_alleles` field.
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
+```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
 julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
@@ -215,7 +215,7 @@ Apply a function to pairs of allele frequency in genomes.
 Please Use named functions if you wish to reconstruct the transformation from the `loci_alleles` field.
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
+```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
 julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
@@ -401,7 +401,7 @@ end
         idx_trait::Int64 = 1,
         idx_entries::Union{Nothing,Vector{Int64}} = nothing,
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
-        transformations1::Vector{Function} = [square, sqrtabs, log10epsdivlog10eps],
+        transformations1::Vector{Function} = [square, invoneplus, log10epsdivlog10eps],
         transformations2::Vector{Function} = [mult, addnorm, raise],
         n_new_features_per_transformation::Int64 = 1_000,
         n_reps::Int64 = 3,
@@ -411,7 +411,7 @@ end
 Generate epistasis features.
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
+```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
 julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
@@ -442,7 +442,7 @@ function epistasisfeatures(
     idx_trait::Int64 = 1,
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
-    transformations1 = [square, sqrtabs, log10epsdivlog10eps],
+    transformations1 = [square, invoneplus, log10epsdivlog10eps],
     transformations2 = [mult, addnorm, raise],
     n_new_features_per_transformation::Int64 = 1_000,
     n_reps::Int64 = 3,
@@ -451,7 +451,7 @@ function epistasisfeatures(
     # genomes = GBCore.simulategenomes(l=1_000)
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing;
-    # transformations1 = [square, sqrtabs, log10epsdivlog10eps]
+    # transformations1 = [square, invoneplus, log10epsdivlog10eps]
     # transformations2 = [mult, addnorm, raise]
     # n_new_features_per_transformation = 100; n_reps = 3; verbose = true
     # Check arguments
@@ -566,83 +566,83 @@ function epistasisfeatures(
 
 end
 
-"""
-    string2operations(x)
+# """
+#     reconstitutefeatures(genomes::Genomes, feature_names::Vector{String})::Genomes
 
-Macro to `Meta.parse` a string of endofunction formulae across allele frequencies.
-"""
-macro string2operations(x)
-    Meta.parse(string("$(x)"))
-end
+# Reconstitute epistasis features given a genomes struct and names of the features which include the endofunction names used.
 
-"""
-    reconstitutefeatures(genomes::Genomes, feature_names::Vector{String})::Genomes
+# # Example
+# ```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
+# julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
 
-Reconstitute epistasis features given a genomes struct and names of the features which include the endofunction names used.
+# julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
-# Example
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
-julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
+# julia> phenomes = extractphenomes(trials);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+# julia> genomes_epifeat = epistasisfeatures(genomes, phenomes, n_new_features_per_transformation=50, n_reps=2, verbose=false);
 
-julia> phenomes = extractphenomes(trials);
+# julia> feature_names = genomes_epifeat.loci_alleles;
 
-julia> genomes_epifeat = epistasisfeatures(genomes, phenomes, n_new_features_per_transformation=50, n_reps=2, verbose=false);
+# julia> genomes_epifeat_reconstructed = reconstitutefeatures(genomes, feature_names=feature_names);
 
-julia> feature_names = genomes_epifeat.loci_alleles;
+# julia> genomes_epifeat == genomes_epifeat_reconstructed
+# true
+# ```
+# """
+# function reconstitutefeatures(
+#     genomes::Genomes;
+#     feature_names::Vector{String},
+#     transformations1::Vector{Function} = [square, invoneplus, log10epsdivlog10eps],
+#     transformations2::Vector{Function} = [mult, addnorm, raise],
+#     verbose::Bool = false)::Genomes
+#     # genomes = GBCore.simulategenomes(l=1_000, verbose=false);
+#     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+#     # phenomes = extractphenomes(trials);
+#     # f1(x) = x^2;
+#     # f2(x,y) = (x^2 + sqrt(y)) / 2;
+#     # genomes_transformed = transform2(f2, transform1(f1, genomes, phenomes), phenomes);
+#     # feature_names = genomes_transformed.loci_alleles; verbose = true;
+#     # transformations1 = [square, invoneplus, log10epsdivlog10eps];
+#     # transformations2 = [mult, addnorm, raise];
+#     # Check arguments
+#     if !checkdims(genomes)
+#         throw(ArgumentError("The Genomes struct is corrupted."))
+#     end
+#     out = Genomes(n = length(genomes.entries), p = length(feature_names))
+#     out.entries = genomes.entries
+#     out.populations = genomes.populations
+#     out.loci_alleles = feature_names
+#     if verbose
+#         pb = ProgressMeter.Progress(length(feature_names); desc = "Reconstituting epistasis features:")
+#     end
+#     for (j, name) in enumerate(feature_names)
+#         # j = 1400; name = feature_names[j]
+#         # operations = vcat(split.(split(replace(name, ")" => ""), "("), ",")...)
+#         # # If no transformations were used, i.e. extracting the raw allele frequencies
+#         # if length(operations) == 1
+#         #     out.allele_frequencies[:, j] = genomes.allele_frequencies[:, genomes.loci_alleles .== name]
+#         #     continue
+#         # end
 
-julia> genomes_epifeat_reconstructed = reconstitutefeatures(genomes, feature_names);
+#         name = "raise(invoneplus(square(invoneplus(chrom_6\t11172410\tT|G\tG))),invoneplus(square(invoneplus(square(chrom_6\t11172410\tT|G\tG)))))"
+#         operations = []
+#         for x in split(name, "(")
+#             append!(operations, transformations1[string.(transformations1) .== x])
+#             append!(operations, transformations2[string.(transformations2) .== x])
+#         end
 
-julia> genomes_epifeat == genomes_epifeat_reconstructed
-true
-```
-"""
-function reconstitutefeatures(genomes::Genomes, feature_names::Vector{String}, verbose::Bool = false)::Genomes
-    # genomes = GBCore.simulategenomes(l=1_000, verbose=false);
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
-    # phenomes = extractphenomes(trials);
-    # f1(x) = x^2;
-    # f2(x,y) = (x^2 + sqrt(y)) / 2;
-    # genomes_transformed = transform2(f2, transform1(f1, genomes, phenomes), phenomes);
-    # feature_names = genomes_transformed.loci_alleles; verbose = true;
-    # Check arguments
-    if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
-    end
-    out = Genomes(n = length(genomes.entries), p = length(feature_names))
-    out.entries = genomes.entries
-    out.populations = genomes.populations
-    out.loci_alleles = feature_names
-    if verbose
-        pb = ProgressMeter.Progress(length(feature_names); desc = "Reconstituting epistasis features:")
-    end
-    for (j, name) in enumerate(feature_names)
-        # name = feature_names[1]
-        operations = vcat(split.(split(replace(name, ")" => ""), "("), ",")...)
-        idx_loci_alleles = [findall(genomes.loci_alleles .== x) for x in operations]
-        for (i, idx) in enumerate(idx_loci_alleles)
-            # i = 3; idx=idx_loci_alleles[i]
-            if length(idx) == 1
-                name = replace(name, operations[i] => string("genomes.allele_frequencies[:,", idx[1], "]"))
-            end
-        end
-        name = replace(name, "(" => ".(")
-        out.allele_frequencies[:, j] = try
-            @eval(@string2operations $(name))
-        catch
-            throw(ArgumentError("Error applying the operation/s: " * replace(name, "\t" => "\\t")))
-        end
-        if verbose
-            ProgressMeter.next!(pb)
-        end
-    end
-    if verbose
-        ProgressMeter.finish!(pb)
-    end
-    # Output
-    if !checkdims(out)
-        throw(ErrorException("Error reconstituting features."))
-    end
-    out
-end
+
+
+#         if verbose
+#             ProgressMeter.next!(pb)
+#         end
+#     end
+#     if verbose
+#         ProgressMeter.finish!(pb)
+#     end
+#     # Output
+#     if !checkdims(out)
+#         throw(ErrorException("Error reconstituting features."))
+#     end
+#     out
+# end
