@@ -577,7 +577,13 @@ macro string2operations(x)
 end
 
 """
-    reconstitutefeatures(genomes::Genomes, feature_names::Vector{String})::Genomes
+    reconstitutefeatures(
+        genomes::Genomes;
+        feature_names::Vector{String},
+        transformations1::Vector{Function} = [square, invoneplus, log10epsdivlog10eps],
+        transformations2::Vector{Function} = [mult, addnorm, raise],
+        verbose::Bool = false,
+    )::Genomes
 
 Reconstitute epistasis features given a genomes struct and names of the features which include the endofunction names used.
 
