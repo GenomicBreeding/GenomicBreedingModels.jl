@@ -8,7 +8,15 @@ Genomic prediction models for GenomicBreeding.jl.
 
 ## Installation
 
-This uses the [R package BGLR](https://github.com/gdlc/BGLR-R) called [via RCall.jl](https://github.com/JuliaInterop/RCall.jl). We therefore need to install R and the BGLR package first. We may also need to define in Julia: `R_HOME="*"`, e.g. `R_HOME="/usr/bin/R"` or `R_HOME="/bin/R"`.
+This uses the [R package BGLR](https://github.com/gdlc/BGLR-R) called [via RCall.jl](https://github.com/JuliaInterop/RCall.jl). We therefore need to install R and the BGLR package first:
+
+```julia
+using Pkg
+R_HOME='*'
+Pkg.build("RCall")
+```
+
+Then install GBModels.jl:
 
 ```julia
 using Pkg
