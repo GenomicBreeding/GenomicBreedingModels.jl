@@ -23,3 +23,4 @@ using DataFrames
 using Suppressor
 using ProgressMeter
 using DataFrames
+using MixedModels

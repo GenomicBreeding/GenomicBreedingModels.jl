@@ -17,10 +17,13 @@ using DataFrames
 using Suppressor
 using ProgressMeter
 using DataFrames
+using MixedModels
 
 include("metrics.jl")
 include("prediction.jl")
 include("transformation.jl")
+include("grm.jl")
+include("gwas.jl")
 include("bayes.jl")
 include("linear.jl")
 include("non_linear.jl")
@@ -28,6 +31,8 @@ include("cross_validation.jl")
 
 export metrics
 export extractxyetc, predict
+export grmsimple, grmploidyaware
+export gwasprep, gwasols, gwasreml
 export square, invoneplus, log10epsdivlog10eps, mult, addnorm, raise
 export transform1, transform2, epistasisfeatures, @string2operations, reconstitutefeatures
 export bglr, bayesian
