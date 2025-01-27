@@ -13,7 +13,7 @@
 Prepare the allele frequency matrix, phenotype vector, genetic relationship matrix and genotype-to-phenotype regression fit struct (G, y, GRM, fit)
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModel, LinearAlgebra)
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -129,7 +129,7 @@ end
 Genome-association analysis via ordinary least squares using a genetic relationship matrix covariate to account for population structure.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModel, LinearAlgebra)
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -142,12 +142,12 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit_1 = gwasols(genomes, phenomes, GRM_type="simple");
+julia> fit = gwasols(genomes, phenomes, GRM_type="simple");
 
-julia> fit_1.model
+julia> fit.model
 "GWAS_OLS"
 
-julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat))[1]
+julia> findall(fit.b_hat .== maximum(fit.b_hat))[1]
 6828
 ```
 """
@@ -179,16 +179,16 @@ function gwasols(
     fit.model = "GWAS_OLS"
     # Iterative GWAS
     n, l = size(G)
-    X = hcat(ones(n), GRM, G[:, 1])
     if verbose
         pb = ProgressMeter.Progress(l; desc = "GWAS via OLS using " * GRM_type * " GRM:")
     end
-    for j = 1:l
+    thread_lock::ReentrantLock = ReentrantLock()
+    Threads.@threads for j = 1:l
         # j = 1
-        X[:, end] = G[:, j]
+        X = hcat(ones(n), GRM, G[:, j])
         Vinv = pinv(X' * X)
         b = Vinv * X' * y
-        fit.b_hat[j] = b[end] / sqrt(Vinv[end, end])
+        @lock thread_lock fit.b_hat[j] = b[end] / sqrt(Vinv[end, end])
         if verbose
             ProgressMeter.next!(pb)
         end
@@ -218,7 +218,43 @@ function gwasols(
     fit
 end
 
-# GWAS via LMM using the first PC of the GRM and an unstructure covariance matrix of the genotype effects
+"""
+    gwaslmm(
+        genomes::Genomes,
+        phenomes::Phenomes;
+        idx_entries::Union{Nothing,Vector{Int64}} = nothing,
+        idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
+        idx_trait::Int64 = 1,
+        GRM_type::String = ["simple", "ploidy-aware"][1],
+        verbose::Bool = false,
+    )::Fit
+
+Genome-association analysis via linear mixed modelling using the first principal component of the genetic relationship matrix,
+where the covariance matrix of the genotype effects is unstructured.
+
+# Examples
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
+julia> genomes = GBCore.simulategenomes(verbose=false);
+
+julia> ploidy = 4;
+
+julia> genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy;
+
+julia> proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5;
+
+julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
+
+julia> phenomes = extractphenomes(trials);
+
+julia> fit = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="simple");
+
+julia> fit.model
+"GWAS_LLM"
+
+julia> findall(fit.b_hat .== maximum(fit.b_hat))[1]
+6828
+```
+"""
 function gwaslmm(
     genomes::Genomes,
     phenomes::Phenomes;
@@ -247,16 +283,15 @@ function gwaslmm(
     fit.model = "GWAS_LMM"
     # Iterative GWAS
     n, l = size(G)
-    df = DataFrames.DataFrame(entries=fit.entries, y=y, x = G[:, 1])
     E = MultivariateStats.fit(PCA, GRM; maxoutdim = 1)
-    df.PC1 = E.proj[:, 1]
     formula = string("y ~ 1 + PC1 + x + (1|entries)")
+    thread_lock::ReentrantLock = ReentrantLock()
     if verbose
         pb = ProgressMeter.Progress(l; desc = "GWAS via LMM using the first PC of the" * GRM_type * " GRM:")
     end
-    for j = 1:l
+    Threads.@threads for j = 1:l
         # j = 1
-        df.x = G[:, j]
+        df = DataFrames.DataFrame(y = y, entries = fit.entries, PC1 = E.proj[:, 1], x = G[:, j])
         f = @eval(@string2formula $(formula))
         model = try
             MixedModel(f, df)
@@ -274,9 +309,8 @@ function gwaslmm(
                 continue
             end
         end
-        model
         df_BLUEs = DataFrame(coeftable(model))
-        fit.b_hat[j] = df_BLUEs.z[end]
+        @lock thread_lock fit.b_hat[j] = df_BLUEs.z[end]
         if verbose
             ProgressMeter.next!(pb)
         end
@@ -306,14 +340,48 @@ function gwaslmm(
     fit
 end
 
-
-
-
-
-
 # REML log-likelihood function
-# y = Xb + Zu + e; where Xb=fixed and Zu=random ~ N(0.0, GRMvg)
-function loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64}, Matrix{Float64}, Matrix{Float64}})::Float64
+# 
+"""
+    loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64},Matrix{Float64},Matrix{Float64}})::Float64
+
+Restricted maximum likelihood function gor genome-wide asociation
+
+Model:
+
+```
+y = Xb + Zu + e
+```
+
+where:
+
+```
+u ~ N(0.0, σ²_u * GRM)
+y ~ N(Xb, σ²_u * GRM + σ²_e * I)
+```
+
+# Examples
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)`
+julia> genomes = GBCore.simulategenomes(verbose=false);
+
+julia> ploidy = 4;
+
+julia> genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy;
+
+julia> proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5;
+
+julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
+
+julia> phenomes = extractphenomes(trials);
+
+julia> G, y, GRM, fit = gwasprep(genomes, phenomes);
+
+julia> loglik = loglikreml([0.53, 0.15], (y, hcat(ones(length(y)), G[:, 1]), GRM));
+
+julia> loglik < 100
+true
+"""
+function loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64},Matrix{Float64},Matrix{Float64}})::Float64
     # genomes = GBCore.simulategenomes(); ploidy = 4; genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy
     # proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5
     # trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
@@ -327,18 +395,18 @@ function loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64}, Matrix{Flo
     GRM = data[3]
     # Note that the incidence matrix random genotype effects, Z is I
     # Residual variance-covariance matrix (assuming homoscedasticity)
-	σ²_e = θ[1]
-	R = σ²_e * I
+    σ²_e = θ[1]
+    R = σ²_e * I
     # Variance-covariance matrix of the other random effects, i.e. individual genotype effects
-	σ²_u = θ[2]
+    σ²_u = θ[2]
     D = σ²_u * GRM
     # Total variance, i.e. variance of y
-	# Since Z = I, V = (Z * D * Z') + R simply becomes:
-	V = D + R
-	V_inv = pinv(V)
+    # Since Z = I, V = (Z * D * Z') + R simply becomes:
+    V = D + R
+    V_inv = pinv(V)
     # REML transformation of y, i.e. find P where E[Py] = 0.0
     P = V_inv - (V_inv * X * inv(X' * V_inv * X) * X' * V_inv)
-    y_REML = P * y 
+    y_REML = P * y
     # Log-likelihood
     loglik = try
         0.5 * log(det(V)) + (y' * y_REML) + log(det(X' * V_inv * X))
@@ -348,6 +416,43 @@ function loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64}, Matrix{Flo
     loglik
 end
 
+"""
+    gwasreml(
+        genomes::Genomes,
+        phenomes::Phenomes;
+        idx_entries::Union{Nothing,Vector{Int64}} = nothing,
+        idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
+        idx_trait::Int64 = 1,
+        GRM_type::String = ["simple", "ploidy-aware"][1],
+        verbose::Bool = false,
+    )::Fit
+
+Genome-association analysis via restricted likelihood estimation,
+where the genetic relationship matrix multiplied by σ²_g is the covariance matrix of the genotype effects.
+
+# Examples
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
+julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
+
+julia> ploidy = 4;
+
+julia> genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy;
+
+julia> proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5;
+
+julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
+
+julia> phenomes = extractphenomes(trials);
+
+julia> fit = gwasreml(genomes, phenomes, GRM_type="simple");
+
+julia> fit.model
+"GWAS_REML"
+
+julia> findall(fit.b_hat .== maximum(fit.b_hat))[1]
+6828
+```
+"""
 function gwasreml(
     genomes::Genomes,
     phenomes::Phenomes;
@@ -379,17 +484,17 @@ function gwasreml(
     optimreml = OptimizationFunction(loglikreml, Optimization.AutoZygote())
     θ_init = [0.5, 0.5]
     n, l = size(G)
-    X = hcat(ones(n), G[:,1])
+    thread_lock::ReentrantLock = ReentrantLock()
     if verbose
-        pb = ProgressMeter.Progress(l; desc = "GWAS via OLS using " * GRM_type * " GRM:")
+        pb = ProgressMeter.Progress(l; desc = "GWAS via REML using " * GRM_type * " GRM:")
     end
-    for j = 1:l
+    Threads.@threads for j = 1:l
         # j = 1
-        X[:, 2] = G[:, j]
+        X = hcat(ones(n), G[:, j])
         # Define the optimisation problem where we set the limits of the error and genotype variances to be between 0 and 1 as all data are standard normalised
         prob = OptimizationProblem(optimreml, θ_init, (y, X, GRM), lb = [eps(Float64), eps(Float64)], ub = [1.0, 1.0])
         # Optimise, i.e. REML estimation (uses the BFGS optimiser with a larger (2x) than default absolute tolerance in the gradient (Default g_tol=1e-8) for faster convergence)
-        sol = solve(prob, BFGS(), g_tol=1e-4)
+        sol = solve(prob, Optim.BFGS(), g_tol = 1e-4)
         R = sol.u[1] * I
         D = sol.u[2] * GRM
         # Since Z = I, V = (Z * D * Z') + R simply becomes:
@@ -397,7 +502,7 @@ function gwasreml(
         V_inv = pinv(V)
         b = pinv(X' * V_inv * X) * (X' * V_inv * y)
         σ²_b = inv(X' * V_inv * X)
-        fit.b_hat[j] = b[end] / sqrt(σ²_b[end])
+        @lock thread_lock fit.b_hat[j] = b[end] / sqrt(σ²_b[end])
         if verbose
             ProgressMeter.next!(pb)
         end

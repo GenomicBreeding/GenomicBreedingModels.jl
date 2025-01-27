@@ -23,6 +23,6 @@ using DataFrames
 using Suppressor
 using ProgressMeter
 using DataFrames
-using Optimization
+using Optimization, Optim
 using MixedModels
 using MultivariateStats

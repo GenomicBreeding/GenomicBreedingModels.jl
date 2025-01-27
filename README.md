@@ -28,7 +28,7 @@ Pkg.add("https://github.com/GenomicBreeding/GBModels.jl")
 ### REPL prelude
 
 ```shell
-julia --threads 2,1 --load test/interactive_prelude.jl
+julia --threads 3,1 --load test/interactive_prelude.jl
 ```
 
 ### Format and test
