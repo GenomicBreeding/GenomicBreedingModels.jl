@@ -126,7 +126,8 @@ end
         verbose::Bool = false,
     )::Fit
 
-Genome-association analysis via ordinary least squares using a genetic relationship matrix covariate to account for population structure.
+Genome-association analysis via ordinary least squares using the first principal component of the 
+genetic relationship matrix as covariate to account for population structure.
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
@@ -142,10 +143,18 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit = gwasols(genomes, phenomes, GRM_type="simple");
+julia> fit_1 = gwasols(genomes, phenomes, GRM_type="simple");
 
-julia> fit.model
+julia> fit_1.model
 "GWAS_OLS"
+
+julia> fit_2 = gwasols(genomes, phenomes, GRM_type="ploidy-aware");
+
+julia> fit_2.model
+"GWAS_OLS"
+
+julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
+true
 ```
 """
 function gwasols(
@@ -176,15 +185,17 @@ function gwasols(
     fit.model = "GWAS_OLS"
     # Iterative GWAS
     n, l = size(G)
+    E = MultivariateStats.fit(PCA, GRM; maxoutdim = 1)
     if verbose
         pb = ProgressMeter.Progress(l; desc = "GWAS via OLS using " * GRM_type * " GRM:")
     end
     thread_lock::ReentrantLock = ReentrantLock()
     Threads.@threads for j = 1:l
         # j = 1
-        X = hcat(ones(n), GRM, G[:, j])
+        X = hcat(ones(n), E.proj[:,1], G[:, j])
         Vinv = pinv(X' * X)
         b = Vinv * X' * y
+        # T-distributed t-statistic
         @lock thread_lock fit.b_hat[j] = b[end] / sqrt(Vinv[end, end])
         if verbose
             ProgressMeter.next!(pb)
@@ -192,21 +203,7 @@ function gwasols(
     end
     if verbose
         ProgressMeter.finish!(pb)
-        # Histogram of t-values
-        UnicodePlots.histogram(fit.b_hat, title = "Distribution of t-values")
-        # Manhattan plot
-        tdist = Distributions.TDist(n - 1)
-        pval = 1 .- cdf.(tdist, abs.(fit.b_hat))
-        lod = -log10.(pval)
-        threshold = -log10(0.05 / l)
-        p1 = UnicodePlots.scatterplot(lod, title = "Manhattan plot", xlabel = "Loci-alleles", ylabel = "-log10(pval)")
-        UnicodePlots.lineplot!(p1, [0, l], [threshold, threshold])
-        @show p1
-        # QQ plot
-        lod_expected = reverse(-log10.(collect(range(0, 1, l))))
-        p2 = UnicodePlots.scatterplot(sort(lod), lod_expected, xlabel = "Observed LOD", ylabel = "Expected LOD")
-        UnicodePlots.lineplot!(p2, [0, lod_expected[end-1]], [0, lod_expected[end-1]])
-        @show p2
+        GBCore.plot(fit, TDist(length(fit.entries)-1))
     end
     # Output
     if !checkdims(fit)
@@ -243,10 +240,18 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="simple");
+julia> fit_1 = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="simple");
 
-julia> fit.model
+julia> fit_1.model
 "GWAS_LMM"
+
+julia> fit_2 = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="ploidy-aware");
+
+julia> fit_2.model
+"GWAS_LMM"
+
+julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
+true
 ```
 """
 function gwaslmm(
@@ -304,6 +309,7 @@ function gwaslmm(
             end
         end
         df_BLUEs = DataFrame(coeftable(model))
+        # Standard normal distributed z-statistic
         @lock thread_lock fit.b_hat[j] = df_BLUEs.z[end]
         if verbose
             ProgressMeter.next!(pb)
@@ -311,21 +317,7 @@ function gwaslmm(
     end
     if verbose
         ProgressMeter.finish!(pb)
-        # Histogram of t-values
-        UnicodePlots.histogram(fit.b_hat, title = "Distribution of z-values")
-        # Manhattan plot
-        ndist = Distributions.Normal(0, 1)
-        pval = 1 .- cdf.(ndist, abs.(fit.b_hat))
-        lod = -log10.(pval)
-        threshold = -log10(0.05 / l)
-        p1 = UnicodePlots.scatterplot(lod, title = "Manhattan plot", xlabel = "Loci-alleles", ylabel = "-log10(pval)")
-        UnicodePlots.lineplot!(p1, [0, l], [threshold, threshold])
-        @show p1
-        # QQ plot
-        lod_expected = reverse(-log10.(collect(range(0, 1, l))))
-        p2 = UnicodePlots.scatterplot(sort(lod), lod_expected, xlabel = "Observed LOD", ylabel = "Expected LOD")
-        UnicodePlots.lineplot!(p2, [0, lod_expected[end-1]], [0, lod_expected[end-1]])
-        @show p2
+        GBCore.plot(fit, Normal())
     end
     # Output
     if !checkdims(fit)
@@ -491,6 +483,7 @@ function gwasreml(
         V_inv = pinv(V)
         b = pinv(X' * V_inv * X) * (X' * V_inv * y)
         σ²_b = inv(X' * V_inv * X)
+        # Standard normal distributed z-statistic
         @lock thread_lock fit.b_hat[j] = b[end] / sqrt(σ²_b[end])
         if verbose
             ProgressMeter.next!(pb)
@@ -498,21 +491,7 @@ function gwasreml(
     end
     if verbose
         ProgressMeter.finish!(pb)
-        # Histogram of t-values
-        UnicodePlots.histogram(fit.b_hat, title = "Distribution of z-values")
-        # Manhattan plot
-        ndist = Distributions.Normal(0, 1)
-        pval = 1 .- cdf.(ndist, abs.(fit.b_hat))
-        lod = -log10.(pval)
-        threshold = -log10(0.05 / l)
-        p1 = UnicodePlots.scatterplot(lod, title = "Manhattan plot", xlabel = "Loci-alleles", ylabel = "-log10(pval)")
-        UnicodePlots.lineplot!(p1, [0, l], [threshold, threshold])
-        @show p1
-        # QQ plot
-        lod_expected = reverse(-log10.(collect(range(0, 1, l))))
-        p2 = UnicodePlots.scatterplot(sort(lod), lod_expected, xlabel = "Observed LOD", ylabel = "Expected LOD")
-        UnicodePlots.lineplot!(p2, [0, lod_expected[end-1]], [0, lod_expected[end-1]])
-        @show p2
+        GBCore.plot(fit, Normal())
     end
     # Output
     if !checkdims(fit)
