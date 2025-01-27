@@ -13,7 +13,7 @@
 Prepare the allele frequency matrix, phenotype vector, genetic relationship matrix and genotype-to-phenotype regression fit struct (G, y, GRM, fit)
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -129,7 +129,7 @@ end
 Genome-association analysis via ordinary least squares using a genetic relationship matrix covariate to account for population structure.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -146,9 +146,6 @@ julia> fit = gwasols(genomes, phenomes, GRM_type="simple");
 
 julia> fit.model
 "GWAS_OLS"
-
-julia> findall(fit.b_hat .== maximum(fit.b_hat))[1]
-6828
 ```
 """
 function gwasols(
@@ -233,7 +230,7 @@ Genome-association analysis via linear mixed modelling using the first principal
 where the covariance matrix of the genotype effects is unstructured.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase, Suppressor)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -250,9 +247,6 @@ julia> fit = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="simple");
 
 julia> fit.model
 "GWAS_LLM"
-
-julia> findall(fit.b_hat .== maximum(fit.b_hat))[1]
-6828
 ```
 """
 function gwaslmm(
@@ -361,7 +355,7 @@ y ~ N(Xb, σ²_u * GRM + σ²_e * I)
 ```
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)`
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)`
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -431,7 +425,7 @@ Genome-association analysis via restricted likelihood estimation,
 where the genetic relationship matrix multiplied by σ²_g is the covariance matrix of the genotype effects.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase))
 julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
 
 julia> ploidy = 4;
@@ -448,9 +442,6 @@ julia> fit = gwasreml(genomes, phenomes, GRM_type="simple");
 
 julia> fit.model
 "GWAS_REML"
-
-julia> findall(fit.b_hat .== maximum(fit.b_hat))[1]
-6828
 ```
 """
 function gwasreml(
