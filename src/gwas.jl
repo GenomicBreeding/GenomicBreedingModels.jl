@@ -246,7 +246,7 @@ julia> phenomes = extractphenomes(trials);
 julia> fit = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="simple");
 
 julia> fit.model
-"GWAS_LLM"
+"GWAS_LMM"
 ```
 """
 function gwaslmm(
@@ -334,8 +334,6 @@ function gwaslmm(
     fit
 end
 
-# REML log-likelihood function
-# 
 """
     loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64},Matrix{Float64},Matrix{Float64}})::Float64
 
@@ -355,7 +353,7 @@ y ~ N(Xb, σ²_u * GRM + σ²_e * I)
 ```
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)`
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -425,7 +423,7 @@ Genome-association analysis via restricted likelihood estimation,
 where the genetic relationship matrix multiplied by σ²_g is the covariance matrix of the genotype effects.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase))
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
 julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
 
 julia> ploidy = 4;
