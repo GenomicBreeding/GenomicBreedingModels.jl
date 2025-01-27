@@ -17,7 +17,9 @@ using DataFrames
 using Suppressor
 using ProgressMeter
 using DataFrames
+using Optimization
 using MixedModels
+using MultivariateStats
 
 include("metrics.jl")
 include("prediction.jl")
