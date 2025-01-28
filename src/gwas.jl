@@ -192,7 +192,7 @@ function gwasols(
     thread_lock::ReentrantLock = ReentrantLock()
     Threads.@threads for j = 1:l
         # j = 1
-        X = hcat(ones(n), E.proj[:,1], G[:, j])
+        X = hcat(ones(n), E.proj[:, 1], G[:, j])
         Vinv = pinv(X' * X)
         b = Vinv * X' * y
         # T-distributed t-statistic
@@ -203,7 +203,7 @@ function gwasols(
     end
     if verbose
         ProgressMeter.finish!(pb)
-        GBCore.plot(fit, TDist(length(fit.entries)-1))
+        GBCore.plot(fit, TDist(length(fit.entries) - 1))
     end
     # Output
     if !checkdims(fit)
@@ -227,7 +227,7 @@ Genome-association analysis via linear mixed modelling using the first principal
 where the covariance matrix of the genotype effects is unstructured.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase, Suppressor)
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -240,12 +240,12 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit_1 = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="simple");
+julia> fit_1 = gwaslmm(genomes, phenomes, GRM_type="simple");
 
 julia> fit_1.model
 "GWAS_LMM"
 
-julia> fit_2 = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="ploidy-aware");
+julia> fit_2 = gwaslmm(genomes, phenomes, GRM_type="ploidy-aware");
 
 julia> fit_2.model
 "GWAS_LMM"
@@ -428,10 +428,18 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit = gwasreml(genomes, phenomes, GRM_type="simple");
+julia> fit_1 = gwasreml(genomes, phenomes, GRM_type="simple");
 
-julia> fit.model
+julia> fit_1.model
 "GWAS_REML"
+
+julia> fit_2 = gwasreml(genomes, phenomes, GRM_type="ploidy-aware");
+
+julia> fit_2.model
+"GWAS_REML"
+
+julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
+true
 ```
 """
 function gwasreml(
