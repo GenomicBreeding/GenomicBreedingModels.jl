@@ -227,7 +227,7 @@ Genome-association analysis via linear mixed modelling using the first principal
 where the covariance matrix of the genotype effects is unstructured.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
+```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase, Suppressor)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
 julia> ploidy = 4;
@@ -240,12 +240,12 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit_1 = gwaslmm(genomes, phenomes, GRM_type="simple");
+julia> fit_1 = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="simple");
 
 julia> fit_1.model
 "GWAS_LMM"
 
-julia> fit_2 = gwaslmm(genomes, phenomes, GRM_type="ploidy-aware");
+julia> fit_2 = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="ploidy-aware");
 
 julia> fit_2.model
 "GWAS_LMM"
