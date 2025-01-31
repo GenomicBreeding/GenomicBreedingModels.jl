@@ -373,7 +373,7 @@ Note that to use multiple threads, please invoke Julia as: `julia --threads 7,1 
 where `--threads 7,1` means use 7 threads for multi-threaded processes while reserving 1 thread for the Julia runtime itself.
 
 ## Examples
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
+```jldoctest; setup = :(using GBCore, GBModels, StatsBase; import GBModels: ridge)
 julia> genomes = GBCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
