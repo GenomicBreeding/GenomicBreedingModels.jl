@@ -110,7 +110,6 @@ true
 """
 function cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, models_vector, verbose::Bool = true)
     # Cross-validate using all thread/s available to Julia (set at startup via julia --threads 2,1 --load test/interactive_prelude.jl)
-    # TODO: multi-threaded execution with RCall results in segmentation fault.
     m = length(cvs)
     # Multi-threaded CV for non-BGLR models
     if verbose
