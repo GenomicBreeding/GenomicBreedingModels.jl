@@ -126,42 +126,23 @@ function cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, m
         replication = cvs[i].replication
         fold = cvs[i].fold
         try
-            if (model == bayesa) || (model == bayesb) || (model == bayesc)
-                # To prevent segmentation fault with multithreaded RCall to BGLR
-                @lock thread_lock cvs[i] = validate(
-                    model(
-                        genomes = genomes,
-                        phenomes = phenomes,
-                        idx_entries = idx_training,
-                        idx_loci_alleles = idx_loci_alleles,
-                        idx_trait = idx_trait,
-                        verbose = false
-                    ),
-                    genomes,
-                    phenomes,
-                    idx_validation = idx_validation,
-                    replication = replication,
-                    fold = fold,
-                )
-            else
-                fit = model(
-                    genomes = genomes,
-                    phenomes = phenomes,
-                    idx_entries = idx_training,
-                    idx_loci_alleles = idx_loci_alleles,
-                    idx_trait = idx_trait,
-                    verbose = false
-                )
-                cv = validate(
-                    fit,
-                    genomes,
-                    phenomes,
-                    idx_validation = idx_validation,
-                    replication = replication,
-                    fold = fold,
-                )
-                @lock thread_lock cvs[i] = cv
-            end
+            fit = model(
+                genomes = genomes,
+                phenomes = phenomes,
+                idx_entries = idx_training,
+                idx_loci_alleles = idx_loci_alleles,
+                idx_trait = idx_trait,
+                verbose = false
+            )
+            cv = validate(
+                fit,
+                genomes,
+                phenomes,
+                idx_validation = idx_validation,
+                replication = replication,
+                fold = fold,
+            )
+            @lock thread_lock cvs[i] = cv
         catch
             @warn string(
                 "Oh naur! This is unexpected multi-threaded model fitting error! Model: ",
@@ -394,7 +375,7 @@ where `--threads 7,1` means use 7 threads for multi-threaded processes while res
 
 ## Examples
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase; import GBModels: ridge)
-julia> genomes = GBCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
+julia> genomes = GBCore.simulategenomes(l=100, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
