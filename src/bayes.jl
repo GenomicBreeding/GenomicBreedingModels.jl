@@ -28,7 +28,7 @@ function bglr(;
     fname_yG = string(prefix_tmp_out, "-yG.tsv")
     open(fname_yG, "w") do file
         for i in eachindex(y)
-            line = join(vcat(y[i], G[i,:]), "\t")
+            line = join(vcat(y[i], G[i, :]), "\t")
             line *= "\n"
             write(file, line)
         end
@@ -39,7 +39,18 @@ function bglr(;
         line_1 = "library(BGLR)\n"
         line_2 = "yG = read.delim('" * fname_yG * "', header=FALSE)\n"
         line_3 = "ETA = list(MRK=list(X=yG[,2:ncol(yG)], model='" * model * "', saveEffects=FALSE))\n"
-        line_4 = "sol = BGLR::BGLR(y=yG[,1], ETA=ETA, response_type='" * response_type * "', nIter=" * string(n_iter) * ", burnIn=" * string(n_burnin) * ", saveAt='" * prefix_tmp_out * "', verbose=" * uppercase(string(verbose)) * ")\n"
+        line_4 =
+            "sol = BGLR::BGLR(y=yG[,1], ETA=ETA, response_type='" *
+            response_type *
+            "', nIter=" *
+            string(n_iter) *
+            ", burnIn=" *
+            string(n_burnin) *
+            ", saveAt='" *
+            prefix_tmp_out *
+            "', verbose=" *
+            uppercase(string(verbose)) *
+            ")\n"
         line_5 = "b_hat = c(sol\$mu, sol\$ETA\$MRK\$b)\n"
         line_6 = "write.table(b_hat, file='" * fname_bhat * "', col.names=FALSE, row.names=FALSE, quote=FALSE)\n"
         write(file, line_1)
