@@ -364,9 +364,8 @@ function cvbulk(;
     catch
         throw(
             ErrorException(
-                "Error performing bulk cross-validation across population/s: " *
-                join(sort(unique(phenomes.populations))) *
-                ".",
+                "Error performing bulk cross-validation across population/s:\n\t‣ " *
+                join(sort(unique(phenomes.populations)), "\n\t‣ ")
             ),
         )
     end
