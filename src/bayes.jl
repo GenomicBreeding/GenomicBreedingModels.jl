@@ -1,11 +1,7 @@
-try
-    R"library(BGLR)"
-catch
-    throw(ErrorException("Please install the BGLR package in R."))
-end
-
 """
 Bayesian models using BGLR, i.e. Bayes A, Bayes B and Bayes C
+
+Note that this is hacky. It invokes Rscript for each instance which should allow multi-threading where RCall.jl currently does not.
 """
 function bglr(;
     G::Matrix{Float64},
@@ -29,21 +25,52 @@ function bglr(;
         "-",
         Int64(round(rand() * 1_000_000)),
     )
-    @rput(G)
-    @rput(y)
-    @rput(model)
-    @rput(response_type)
-    @rput(n_iter)
-    @rput(n_burnin)
-    @rput(prefix_tmp_out)
-    @rput(verbose)
-    R"ETA = list(MRK=list(X=G, model=model, saveEffects=FALSE))"
-    R"sol = BGLR::BGLR(y=y, ETA=ETA, response_type=response_type, nIter=n_iter, burnIn=n_burnin, saveAt=prefix_tmp_out, verbose=verbose)"
-    @rget(sol)
-    b_hat = vcat(sol[:mu], sol[:ETA][:MRK][:b])
+    fname_yG = string(prefix_tmp_out, "-yG.tsv")
+    open(fname_yG, "w") do file
+        for i in eachindex(y)
+            line = join(vcat(y[i], G[i, :]), "\t")
+            line *= "\n"
+            write(file, line)
+        end
+    end
+    fname_R = string(prefix_tmp_out, ".R")
+    fname_bhat = string(prefix_tmp_out, "-bhat.tsv")
+    open(fname_R, "w") do file
+        line_1 = "library(BGLR)\n"
+        line_2 = "yG = read.delim('" * fname_yG * "', header=FALSE)\n"
+        line_3 = "ETA = list(MRK=list(X=yG[,2:ncol(yG)], model='" * model * "', saveEffects=FALSE))\n"
+        line_4 =
+            "sol = BGLR::BGLR(y=yG[,1], ETA=ETA, response_type='" *
+            response_type *
+            "', nIter=" *
+            string(n_iter) *
+            ", burnIn=" *
+            string(n_burnin) *
+            ", saveAt='" *
+            prefix_tmp_out *
+            "', verbose=" *
+            uppercase(string(verbose)) *
+            ")\n"
+        line_5 = "b_hat = c(sol\$mu, sol\$ETA\$MRK\$b)\n"
+        line_6 = "write.table(b_hat, file='" * fname_bhat * "', col.names=FALSE, row.names=FALSE, quote=FALSE)\n"
+        write(file, line_1)
+        write(file, line_2)
+        write(file, line_3)
+        write(file, line_4)
+        write(file, line_5)
+        write(file, line_6)
+    end
+    RCOMMAND = Cmd(["Rscript", fname_R])
+    run(RCOMMAND)
+    b_hat = []
+    open(fname_bhat, "r") do file
+        for line in eachline(file)
+            push!(b_hat, parse(Float64, line))
+        end
+    end
     # Clean-up
     files = readdir()
-    rm.(files[match.(Regex(string("^", prefix_tmp_out)), files).!=nothing])
+    rm.(files[.!isnothing.(match.(Regex(string("^", prefix_tmp_out)), files))])
     # Output
     b_hat
 end

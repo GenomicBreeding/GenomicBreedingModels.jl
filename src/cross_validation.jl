@@ -126,42 +126,23 @@ function cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, m
         replication = cvs[i].replication
         fold = cvs[i].fold
         try
-            if (model == bayesa) || (model == bayesb) || (model == bayesc)
-                # To prevent segmentation fault with multithreaded RCall to BGLR
-                @lock thread_lock cvs[i] = validate(
-                    model(
-                        genomes = genomes,
-                        phenomes = phenomes,
-                        idx_entries = idx_training,
-                        idx_loci_alleles = idx_loci_alleles,
-                        idx_trait = idx_trait,
-                        verbose = false
-                    ),
-                    genomes,
-                    phenomes,
-                    idx_validation = idx_validation,
-                    replication = replication,
-                    fold = fold,
-                )
-            else
-                fit = model(
-                    genomes = genomes,
-                    phenomes = phenomes,
-                    idx_entries = idx_training,
-                    idx_loci_alleles = idx_loci_alleles,
-                    idx_trait = idx_trait,
-                    verbose = false
-                )
-                cv = validate(
-                    fit,
-                    genomes,
-                    phenomes,
-                    idx_validation = idx_validation,
-                    replication = replication,
-                    fold = fold,
-                )
-                @lock thread_lock cvs[i] = cv
-            end
+            fit = model(
+                genomes = genomes,
+                phenomes = phenomes,
+                idx_entries = idx_training,
+                idx_loci_alleles = idx_loci_alleles,
+                idx_trait = idx_trait,
+                verbose = false,
+            )
+            cv = validate(
+                fit,
+                genomes,
+                phenomes,
+                idx_validation = idx_validation,
+                replication = replication,
+                fold = fold,
+            )
+            @lock thread_lock cvs[i] = cv
         catch
             @warn string(
                 "Oh naur! This is unexpected multi-threaded model fitting error! Model: ",
@@ -393,13 +374,13 @@ where `--threads 7,1` means use 7 threads for multi-threaded processes while res
 
 ## Examples
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase; import GBModels: ridge)
-julia> genomes = GBCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
+julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
-julia> cvs, notes = cvperpopulation(genomes=genomes, phenomes=phenomes, models=[ols, bayesa], n_replications=2, n_folds=2, verbose=true);
+julia> cvs, notes = cvperpopulation(genomes=genomes, phenomes=phenomes, models=[ridge, bayesa], n_replications=2, n_folds=2, verbose=false);
 
 julia> df_across_entries, df_per_entry = tabularise(cvs);
 
@@ -412,12 +393,20 @@ julia> sort(unique(df_across_entries.training_population))
 julia> df_across_entries.training_population == df_across_entries.validation_population
 true
 
-julia> idx_across = findall((df_across_entries.validation_population .== "pop_1") .&& (df_across_entries.trait .== "trait_1") .&& (df_across_entries.model .== "ridge") .&& (df_across_entries.replication .== "replication_1") .&& (df_across_entries.fold .== "fold_1"));
+julia> idx_across = findall((df_across_entries.validation_population .== "pop_1") .&& (df_across_entries.trait .== "trait_1") .&& (df_across_entries.model .== "bayesa") .&& (df_across_entries.replication .== "replication_1") .&& (df_across_entries.fold .== "fold_1"));
 
-julia> idx_per = findall((df_per_entry.validation_population .== "pop_1") .&& (df_per_entry.trait .== "trait_1") .&& (df_per_entry.model .== "ridge") .&& (df_per_entry.replication .== "replication_1") .&& (df_per_entry.fold .== "fold_1"));
+julia> idx_per = findall((df_per_entry.validation_population .== "pop_1") .&& (df_per_entry.trait .== "trait_1") .&& (df_per_entry.model .== "bayesa") .&& (df_per_entry.replication .== "replication_1") .&& (df_per_entry.fold .== "fold_1"));
 
 julia> abs(df_across_entries.cor[idx_across][1] - cor(df_per_entry.y_true[idx_per], df_per_entry.y_pred[idx_per])) < 1e-10
 true
+
+julia> summary_across, summary_per_entry = summarise(cvs);
+
+julia> size(summary_across)
+(6, 6)
+
+julia> size(summary_per_entry)
+(200, 8)
 ```
 """
 function cvperpopulation(;

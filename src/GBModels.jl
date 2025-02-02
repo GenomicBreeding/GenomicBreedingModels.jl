@@ -12,7 +12,6 @@ using GLMNet
 using Turing
 using BenchmarkTools, TuringBenchmarking
 using ReverseDiff
-using RCall
 using DataFrames
 using Suppressor
 using ProgressMeter
