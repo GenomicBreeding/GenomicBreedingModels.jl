@@ -323,6 +323,10 @@ function cvbulk(;
                         zeros(length(idx_validation)),
                         fit.metrics,
                     )
+                    # Rename training and validation populations simply as "BULK"
+                    fit.populations .= "bulk"
+                    cv.validation_populations .= "bulk"
+                    # Update the vectors of CVs and models
                     push!(cvs, cv)
                     push!(models_vector, model)
                     if verbose
@@ -346,7 +350,7 @@ function cvbulk(;
         throw(
             ErrorException(
                 "Error performing bulk cross-validation across population/s:\n\t‣ " *
-                join(sort(unique(phenomes.populations)), "\n\t‣ ")
+                join(sort(unique(phenomes.populations)), "\n\t‣ "),
             ),
         )
     end
