@@ -302,6 +302,8 @@ end
         idx_entries::Union{Nothing,Vector{Int64}} = nothing,
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
         idx_trait::Int64 = 1,
+        n_iter::Int64 = 1_500,
+        n_burnin::Int64 = 500,
         verbose::Bool = false,
     )::Fit
 
@@ -330,6 +332,8 @@ function bayesa(;
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     idx_trait::Int64 = 1,
+    n_iter::Int64 = 1_500,
+    n_burnin::Int64 = 500,
     verbose::Bool = false,
 )::Fit
     fit = bayesian(
@@ -354,6 +358,8 @@ end
         idx_entries::Union{Nothing,Vector{Int64}} = nothing,
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
         idx_trait::Int64 = 1,
+        n_iter::Int64 = 1_500,
+        n_burnin::Int64 = 500,
         verbose::Bool = false,
     )::Fit
 
@@ -382,6 +388,8 @@ function bayesb(;
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     idx_trait::Int64 = 1,
+    n_iter::Int64 = 1_500,
+    n_burnin::Int64 = 500,
     verbose::Bool = false,
 )::Fit
     fit = bayesian(
@@ -406,6 +414,8 @@ end
         idx_entries::Union{Nothing,Vector{Int64}} = nothing,
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
         idx_trait::Int64 = 1,
+        n_iter::Int64 = 1_500,
+        n_burnin::Int64 = 500,
         verbose::Bool = false,
     )::Fit
 
@@ -434,6 +444,8 @@ function bayesc(;
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     idx_trait::Int64 = 1,
+    n_iter::Int64 = 1_500,
+    n_burnin::Int64 = 500,
     verbose::Bool = false,
 )::Fit
     fit = bayesian(
