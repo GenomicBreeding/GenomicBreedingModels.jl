@@ -343,6 +343,8 @@ function bayesa(;
         idx_entries = idx_entries,
         idx_loci_alleles = idx_loci_alleles,
         idx_trait = idx_trait,
+        n_iter = n_iter,
+        n_burnin = n_burnin,
         response_type = "gaussian",
         verbose = verbose,
     )
@@ -399,6 +401,8 @@ function bayesb(;
         idx_entries = idx_entries,
         idx_loci_alleles = idx_loci_alleles,
         idx_trait = idx_trait,
+        n_iter = n_iter,
+        n_burnin = n_burnin,
         response_type = "gaussian",
         verbose = verbose,
     )
@@ -455,6 +459,8 @@ function bayesc(;
         idx_entries = idx_entries,
         idx_loci_alleles = idx_loci_alleles,
         idx_trait = idx_trait,
+        n_iter = n_iter,
+        n_burnin = n_burnin,
         response_type = "gaussian",
         verbose = verbose,
     )
