@@ -234,6 +234,9 @@ function cvbulk(;
     if mask_genomes != mask_phenomes
         throw(ArgumentError("The masks in genomes and phenomes do not match."))
     end
+    if length(models) < 1
+        throw(ArgumentError("No models were specified."))
+    end
     valid_models = [ols, ridge, lasso, bayesa, bayesb, bayesc]
     for model in models
         # model = models[1]
@@ -445,6 +448,9 @@ function cvperpopulation(;
     if mask_genomes != mask_phenomes
         throw(ArgumentError("The masks in genomes and phenomes do not match."))
     end
+    if length(models) < 1
+        throw(ArgumentError("No models were specified."))
+    end
     valid_models = [ols, ridge, lasso, bayesa, bayesb, bayesc]
     for model in models
         # model = models[1]
@@ -576,6 +582,9 @@ function cvpairwisepopulation(;
     mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
     if mask_genomes != mask_phenomes
         throw(ArgumentError("The masks in genomes and phenomes do not match."))
+    end
+    if length(models) < 1
+        throw(ArgumentError("No models were specified."))
     end
     valid_models = [ols, ridge, lasso, bayesa, bayesb, bayesc]
     for model in models
@@ -776,6 +785,9 @@ function cvleaveonepopulationout(;
     mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
     if mask_genomes != mask_phenomes
         throw(ArgumentError("The masks in genomes and phenomes do not match."))
+    end
+    if length(models) < 1
+        throw(ArgumentError("No models were specified."))
     end
     valid_models = [ols, ridge, lasso, bayesa, bayesb, bayesc]
     for model in models
