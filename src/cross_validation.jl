@@ -298,8 +298,8 @@ function cvbulk(;
                 # j = 1
                 # Check the phenotypes early before we partition them into threads. Much more efficient eh!
                 ϕ = phenomes.phenotypes[:, phenomes.traits.==trait][:, 1]
-                idx_training = findall((idx_permutation .!= j) .&& .!ismissing.(ϕ))
-                idx_validation = findall((idx_permutation .== j) .&& .!ismissing.(ϕ))
+                idx_training = findall((idx_permutation .!= j) .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ))
+                idx_validation = findall((idx_permutation .== j) .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ))
                 if (length(idx_training) < 2 || length(idx_validation) < 1)
                     push!(notes, join(["too_many_missing", trait, string("replication_", i), string("fold_", j)], ";"))
                     continue
@@ -633,8 +633,15 @@ function cvpairwisepopulation(;
                 end
                 # Check the phenotypes early before we partition them into threads. Much more efficient eh!
                 ϕ = phenomes.phenotypes[:, phenomes.traits.==trait][:, 1]
-                idx_training = findall(phenomes.populations .== training_population)
-                idx_validation = findall(phenomes.populations .== validation_population)
+                idx_training = findall(
+                    (phenomes.populations .== training_population) .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ),
+                )
+                idx_validation = findall(
+                    (phenomes.populations .== validation_population) .&&
+                    .!ismissing.(ϕ) .&&
+                    .!isnan.(ϕ) .&&
+                    .!isinf.(ϕ),
+                )
                 if (length(idx_training) < 2 || length(idx_validation) < 1)
                     push!(
                         notes,
@@ -830,8 +837,12 @@ function cvleaveonepopulationout(;
             # validation_population = populations[1]
             # Check the phenotypes early before we partition them into threads. Much more efficient eh!
             ϕ = phenomes.phenotypes[:, phenomes.traits.==trait][:, 1]
-            idx_training = findall(phenomes.populations .!= validation_population)
-            idx_validation = findall(phenomes.populations .== validation_population)
+            idx_training = findall(
+                phenomes.populations .!= validation_population .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ),
+            )
+            idx_validation = findall(
+                phenomes.populations .== validation_population .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ),
+            )
             if (length(idx_training) < 2 || length(idx_validation) < 1)
                 push!(
                     notes,

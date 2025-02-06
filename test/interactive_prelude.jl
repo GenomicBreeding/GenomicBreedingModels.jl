@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate(".")
 try
-    Pkg.add(url = "https://github.com/GenomicBreeding/GBCore.jl")
+    Pkg.update()
 catch
     nothing
 end
