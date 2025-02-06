@@ -240,7 +240,7 @@ function cvbulk(;
     valid_models = [ols, ridge, lasso, bayesa, bayesb, bayesc]
     for model in models
         # model = models[1]
-        if !isa(model, Function)
+        if !isa(model, Function) && sum(valid_models .== model) > 0
             throw(
                 ArgumentError(
                     "The supplied model: `" *
@@ -454,7 +454,7 @@ function cvperpopulation(;
     valid_models = [ols, ridge, lasso, bayesa, bayesb, bayesc]
     for model in models
         # model = models[1]
-        if !isa(model, Function)
+        if !isa(model, Function) && sum(valid_models .== model) > 0
             throw(
                 ArgumentError(
                     "The supplied model: `" *
@@ -589,7 +589,7 @@ function cvpairwisepopulation(;
     valid_models = [ols, ridge, lasso, bayesa, bayesb, bayesc]
     for model in models
         # model = models[1]
-        if !isa(model, Function)
+        if !isa(model, Function) && sum(valid_models .== model) > 0
             throw(
                 ArgumentError(
                     "The supplied model: `" *
@@ -792,7 +792,7 @@ function cvleaveonepopulationout(;
     valid_models = [ols, ridge, lasso, bayesa, bayesb, bayesc]
     for model in models
         # model = models[1]
-        if !isa(model, Function)
+        if !isa(model, Function) && sum(valid_models .== model) > 0
             throw(
                 ArgumentError(
                     "The supplied model: `" *
