@@ -326,9 +326,6 @@ function cvbulk(;
                         zeros(length(idx_validation)),
                         fit.metrics,
                     )
-                    # Rename training and validation populations simply as "BULK"
-                    fit.populations .= "bulk"
-                    cv.validation_populations .= "bulk"
                     # Update the vectors of CVs and models
                     push!(cvs, cv)
                     push!(models_vector, model)
