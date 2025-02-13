@@ -151,29 +151,30 @@ function ridge(;
         maxit = 1_000_000,
     )
     if verbose
-        UnicodePlots.histogram(glmnet_fit.meanloss)
-        UnicodePlots.scatterplot(glmnet_fit.meanloss)
-        UnicodePlots.scatterplot(glmnet_fit.lambda, glmnet_fit.meanloss)
-        UnicodePlots.scatterplot(log10.(glmnet_fit.lambda), glmnet_fit.meanloss)
+        display(UnicodePlots.histogram(glmnet_fit.meanloss))
+        display(UnicodePlots.scatterplot(glmnet_fit.meanloss))
+        display(UnicodePlots.scatterplot(glmnet_fit.lambda, glmnet_fit.meanloss))
+        display(UnicodePlots.scatterplot(log10.(glmnet_fit.lambda), glmnet_fit.meanloss))
         println(string("argmin = ", argmin(glmnet_fit.meanloss)))
     end
     # Use the coefficients with variance
     b_hat::Vector{Float64} = zeros(size(X, 2) + 1)
     idx_sort = sortperm(glmnet_fit.meanloss)
     INTERCEPTSs = glmnet_fit.path.a0[idx_sort]
-    BETAs = glmnet_fit.path.betas[:, idx_sort]
+    # BETAs = glmnet_fit.path.betas[:, idx_sort]
+    BETAs = glmnet_fit.path.betas
     i = 1
-    while var(b_hat[2:end]) < 1e-10
-        b_hat = vcat(INTERCEPTSs[i], BETAs[:, i])
+    while (var(b_hat[2:end]) < 1e-10) || (i == size(BETAs, 2))
+        b_hat = vcat(INTERCEPTSs[idx_sort[i]], BETAs[:, idx_sort[i]])
         i += 1
     end
     # Assess prediction accuracy
     y_pred::Vector{Float64} = b_hat[1] .+ (X * b_hat[2:end])
     performance::Dict{String,Float64} = metrics(y, y_pred)
     if verbose
-        UnicodePlots.scatterplot(y, y_pred)
-        UnicodePlots.histogram(y)
-        UnicodePlots.histogram(y_pred)
+        display(UnicodePlots.scatterplot(y, y_pred))
+        display(UnicodePlots.histogram(y))
+        display(UnicodePlots.histogram(y_pred))
         println(performance)
     end
     # Output
