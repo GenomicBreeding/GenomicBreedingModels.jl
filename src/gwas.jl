@@ -26,7 +26,7 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> G, y, GRM, fit = gwasprep(genomes, phenomes);
+julia> G, y, GRM, fit = gwasprep(genomes=genomes, phenomes=phenomes);
 
 julia> sum(abs.(mean(G, dims=1)[1,:]) .< 1e-10) == size(G, 2)
 true
@@ -50,9 +50,9 @@ julia> length(fit.b_hat) == size(G, 2)
 true
 ```
 """
-function gwasprep(
+function gwasprep(;
     genomes::Genomes,
-    phenomes::Phenomes;
+    phenomes::Phenomes,
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     idx_trait::Int64 = 1,
@@ -143,23 +143,23 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit_1 = gwasols(genomes, phenomes, GRM_type="simple");
+julia> fit_1 = gwasols(genomes=genomes, phenomes=phenomes, GRM_type="simple");
 
 julia> fit_1.model
 "GWAS_OLS"
 
-julia> fit_2 = gwasols(genomes, phenomes, GRM_type="ploidy-aware");
+julia> fit_2 = gwasols(genomes=genomes, phenomes=phenomes, GRM_type="ploidy-aware");
 
 julia> fit_2.model
 "GWAS_OLS"
 
 julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
 true
-```
+```;
 """
-function gwasols(
+function gwasols(;
     genomes::Genomes,
-    phenomes::Phenomes;
+    phenomes::Phenomes,
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     idx_trait::Int64 = 1,
@@ -173,8 +173,8 @@ function gwasols(
     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; GRM_type = "ploidy-aware"; verbose = true
     # Check arguments while preparing the G, y, GRM, and Fit struct, vector and matrices
     G, y, GRM, fit = gwasprep(
-        genomes,
-        phenomes,
+        genomes = genomes,
+        phenomes = phenomes,
         idx_entries = idx_entries,
         idx_loci_alleles = idx_loci_alleles,
         idx_trait = idx_trait,
@@ -240,23 +240,23 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit_1 = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="simple");
+julia> fit_1 = Suppressor.@suppress gwaslmm(genomes=genomes, phenomes=phenomes, GRM_type="simple");
 
 julia> fit_1.model
 "GWAS_LMM"
 
-julia> fit_2 = Suppressor.@suppress gwaslmm(genomes, phenomes, GRM_type="ploidy-aware");
+julia> fit_2 = Suppressor.@suppress gwaslmm(genomes=genomes, phenomes=phenomes, GRM_type="ploidy-aware");
 
 julia> fit_2.model
 "GWAS_LMM"
 
 julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
 true
-```
+```;
 """
-function gwaslmm(
+function gwaslmm(;
     genomes::Genomes,
-    phenomes::Phenomes;
+    phenomes::Phenomes,
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     idx_trait::Int64 = 1,
@@ -270,8 +270,8 @@ function gwaslmm(
     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; GRM_type = "ploidy-aware"; verbose = true
     # Check arguments while preparing the G, y, GRM, and Fit struct, vector and matrices
     G, y, GRM, fit = gwasprep(
-        genomes,
-        phenomes,
+        genomes = genomes,
+        phenomes = phenomes,
         idx_entries = idx_entries,
         idx_loci_alleles = idx_loci_alleles,
         idx_trait = idx_trait,
@@ -358,7 +358,7 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> G, y, GRM, fit = gwasprep(genomes, phenomes);
+julia> G, y, GRM, fit = gwasprep(genomes=genomes, phenomes=phenomes);
 
 julia> loglik = loglikreml([0.53, 0.15], (y, hcat(ones(length(y)), G[:, 1]), GRM));
 
@@ -370,7 +370,7 @@ function loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64},Matrix{Floa
     # proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5
     # trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
     # phenomes = extractphenomes(trials)
-    # G, y, GRM, _ = gwasprep(genomes, phenomes)
+    # G, y, GRM, _ = gwasprep(genomes=genomes, phenomes=phenomes)
     # X = hcat(ones(length(y)), G[:, 1])
     # θ = [0.01, 0.02]
     # Data
@@ -428,23 +428,23 @@ julia> trials, effects = GBCore.simulatetrials(genomes=genomes, n_years=1, n_sea
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit_1 = gwasreml(genomes, phenomes, GRM_type="simple");
+julia> fit_1 = gwasreml(genomes=genomes, phenomes=phenomes, GRM_type="simple");
 
 julia> fit_1.model
 "GWAS_REML"
 
-julia> fit_2 = gwasreml(genomes, phenomes, GRM_type="ploidy-aware");
+julia> fit_2 = gwasreml(genomes=genomes, phenomes=phenomes, GRM_type="ploidy-aware");
 
 julia> fit_2.model
 "GWAS_REML"
 
 julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
 true
-```
+```;
 """
-function gwasreml(
+function gwasreml(;
     genomes::Genomes,
-    phenomes::Phenomes;
+    phenomes::Phenomes,
     idx_entries::Union{Nothing,Vector{Int64}} = nothing,
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     idx_trait::Int64 = 1,
@@ -458,8 +458,8 @@ function gwasreml(
     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; GRM_type = "ploidy-aware"; verbose = true
     # Check arguments while preparing the G, y, GRM, and Fit struct, vector and matrices
     G, y, GRM, fit = gwasprep(
-        genomes,
-        phenomes,
+        genomes = genomes,
+        phenomes = phenomes,
         idx_entries = idx_entries,
         idx_loci_alleles = idx_loci_alleles,
         idx_trait = idx_trait,
