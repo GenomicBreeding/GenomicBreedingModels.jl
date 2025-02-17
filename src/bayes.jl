@@ -23,9 +23,19 @@ function bglr(;
         "-tmp-out-",
         hash(string.(vcat(y, [model, response_type, n_iter, n_burnin, verbose]))),
         "-",
+        Dates.format(now(), "yyyymmddHHMMSSssss"),
         Int64(round(rand() * rand() * 1_000_000_000)),
     )
-    fname_yG = string(prefix_tmp_out, "-yG.tsv")
+    fname_yG = if !isfile(string(prefix_tmp_out, "-yG.tsv")) 
+        string(prefix_tmp_out, Int64(round(rand() * rand() * 1_000_000_000)), "-yG.tsv")
+    else
+        string(
+            prefix_tmp_out, 
+            Dates.format(now(), "yyyymmddHHMMSSssss"),
+            Int64(round(rand() * rand() * 1_000_000_000)),
+            "-yG.tsv"
+        )
+    end
     open(fname_yG, "w") do file
         for i in eachindex(y)
             line = join(vcat(y[i], G[i, :]), "\t")
