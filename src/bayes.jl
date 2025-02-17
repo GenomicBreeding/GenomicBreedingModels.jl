@@ -23,7 +23,7 @@ function bglr(;
         "-tmp-out-",
         hash(string.(vcat(y, [model, response_type, n_iter, n_burnin, verbose]))),
         "-",
-        Int64(round(rand() * 1_000_000)),
+        Int64(round(rand() * rand() * 1_000_000_000)),
     )
     fname_yG = string(prefix_tmp_out, "-yG.tsv")
     open(fname_yG, "w") do file
@@ -38,9 +38,9 @@ function bglr(;
     open(fname_R, "w") do file
         line_1 = "library(BGLR)\n"
         line_2 = "yG = read.delim('" * fname_yG * "', header=FALSE)\n"
-        line_3 = "ETA = list(MRK=list(X=yG[,2:ncol(yG)], model='" * model * "', saveEffects=FALSE))\n"
+        line_3 = "ETA = list(MRK=list(X=as.numeric(yG[,2:ncol(yG)]), model='" * model * "', saveEffects=FALSE))\n"
         line_4 =
-            "sol = BGLR::BGLR(y=yG[,1], ETA=ETA, response_type='" *
+            "sol = BGLR::BGLR(y=as.numeric(yG[,1]), ETA=ETA, response_type='" *
             response_type *
             "', nIter=" *
             string(n_iter) *
