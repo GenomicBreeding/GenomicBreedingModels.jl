@@ -135,7 +135,7 @@ function bayesian(
     prefix_tmp_out = string(
         model,
         "-tmp-out-",
-        hash(string.(vcat(idx_entries, idx_trait, [model, response_type, n_iter, n_burnin, verbose]))),
+        hash(string.(vcat(idx_entries, idx_trait, [bglr_model, response_type, n_iter, n_burnin, verbose]))),
         "-",
         Dates.format(now(), "yyyymmddHHMMSSssss"),
         Int64(round(rand() * rand() * 1_000_000_000)),
