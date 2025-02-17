@@ -48,9 +48,9 @@ function bglr(;
     open(fname_R, "w") do file
         line_1 = "library(BGLR)\n"
         line_2 = "yG = read.delim('" * fname_yG * "', header=FALSE)\n"
-        line_3 = "ETA = list(MRK=list(X=as.numeric(yG[,2:ncol(yG)]), model='" * model * "', saveEffects=FALSE))\n"
+        line_3 = "ETA = list(MRK=list(X=yG[,2:ncol(yG)], model='" * model * "', saveEffects=FALSE))\n"
         line_4 =
-            "sol = BGLR::BGLR(y=as.numeric(yG[,1]), ETA=ETA, response_type='" *
+            "sol = BGLR::BGLR(y=yG[,1], ETA=ETA, response_type='" *
             response_type *
             "', nIter=" *
             string(n_iter) *
