@@ -26,14 +26,14 @@ function bglr(;
         Dates.format(now(), "yyyymmddHHMMSSssss"),
         Int64(round(rand() * rand() * 1_000_000_000)),
     )
-    fname_yG = if !isfile(string(prefix_tmp_out, "-yG.tsv")) 
+    fname_yG = if !isfile(string(prefix_tmp_out, "-yG.tsv"))
         string(prefix_tmp_out, "-yG.tsv")
     else
         string(
-            prefix_tmp_out, 
+            prefix_tmp_out,
             Dates.format(now(), "yyyymmddHHMMSSssss"),
             Int64(round(rand() * rand() * 1_000_000_000)),
-            "-yG.tsv"
+            "-yG.tsv",
         )
     end
     open(fname_yG, "w") do file
