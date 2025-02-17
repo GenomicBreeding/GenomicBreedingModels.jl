@@ -27,7 +27,7 @@ function bglr(;
         Int64(round(rand() * rand() * 1_000_000_000)),
     )
     fname_yG = if !isfile(string(prefix_tmp_out, "-yG.tsv")) 
-        string(prefix_tmp_out, Int64(round(rand() * rand() * 1_000_000_000)), "-yG.tsv")
+        string(prefix_tmp_out, "-yG.tsv")
     else
         string(
             prefix_tmp_out, 

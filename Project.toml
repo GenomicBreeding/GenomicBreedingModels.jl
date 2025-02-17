@@ -6,6 +6,7 @@ version = "1.0.0-DEV"
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -27,13 +28,13 @@ Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 TuringBenchmarking = "0db1332d-5c25-4deb-809f-459bc696f94f"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
-[sources.GBCore]
-rev = "main"
-url = "https://github.com/GenomicBreeding/GBCore.jl"
+[sources]
+GBCore = {rev = "main", url = "https://github.com/GenomicBreeding/GBCore.jl"}
 
 [compat]
 BenchmarkTools = "1.6.0"
 DataFrames = "1.7.0"
+Dates = "1.11.0"
 Distances = "0.10.12"
 Distributions = "0.25.116"
 Documenter = "1.8.0"
