@@ -10,6 +10,7 @@ function bglr(;
     response_type::String = ["gaussian", "ordinal"][1],
     n_iter::Int64 = 1_500,
     n_burnin::Int64 = 500,
+    prefix_tmp_out::String = "tmpout", 
     verbose::Bool = false,
 )::Vector{Float64}
     # genomes = GBCore.simulategenomes(n=1_000, l=1_750, verbose=true)
@@ -17,25 +18,8 @@ function bglr(;
     # phenomes = extractphenomes(trials)
     # G::Matrix{Float64} = genomes.allele_frequencies
     # y::Vector{Float64} = phenomes.phenotypes[:, 1]
-    # model=["BayesA", "BayesB", "BayesC"][1]; response_type = ["gaussian", "ordinal"][1]; n_iter=10_500; n_burnin=100; verbose=true
-    prefix_tmp_out = string(
-        model,
-        "-tmp-out-",
-        hash(string.(vcat(y, [model, response_type, n_iter, n_burnin, verbose]))),
-        "-",
-        Dates.format(now(), "yyyymmddHHMMSSssss"),
-        Int64(round(rand() * rand() * 1_000_000_000)),
-    )
-    fname_yG = if !isfile(string(prefix_tmp_out, "-yG.tsv"))
-        string(prefix_tmp_out, "-yG.tsv")
-    else
-        string(
-            prefix_tmp_out,
-            Dates.format(now(), "yyyymmddHHMMSSssss"),
-            Int64(round(rand() * rand() * 1_000_000_000)),
-            "-yG.tsv",
-        )
-    end
+    # model=["BayesA", "BayesB", "BayesC"][1]; response_type = ["gaussian", "ordinal"][1]; n_iter=10_500; n_burnin=100; verbose = true;
+    fname_yG = string(prefix_tmp_out, "-yG.tsv")
     open(fname_yG, "w") do file
         for i in eachindex(y)
             line = join(vcat(y[i], G[i, :]), "\t")
@@ -148,6 +132,14 @@ function bayesian(
     fit.populations = populations
     fit.y_true = y
     # R-BGLR
+    prefix_tmp_out = string(
+        model,
+        "-tmp-out-",
+        hash(string.(vcat(idx_entries, idx_trait, [model, response_type, n_iter, n_burnin, verbose]))),
+        "-",
+        Dates.format(now(), "yyyymmddHHMMSSssss"),
+        Int64(round(rand() * rand() * 1_000_000_000)),
+    )
     b_hat = bglr(
         G = X[:, 2:end],
         y = y,
@@ -155,6 +147,7 @@ function bayesian(
         response_type = response_type,
         n_iter = n_iter,
         n_burnin = n_burnin,
+        prefix_tmp_out = prefix_tmp_out, 
         verbose = verbose,
     )
     # Clean-up BGLR temp files
