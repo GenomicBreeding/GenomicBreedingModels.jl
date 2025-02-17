@@ -133,7 +133,7 @@ function bayesian(
     fit.y_true = y
     # R-BGLR
     prefix_tmp_out = string(
-        model,
+        bglr_model,
         "-tmp-out-",
         hash(string.(vcat(idx_entries, idx_trait, [bglr_model, response_type, n_iter, n_burnin, verbose]))),
         "-",
