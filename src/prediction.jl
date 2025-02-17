@@ -89,8 +89,8 @@ function extractxyetc(
     end
     # Extract the response variable
     y::Vector{Float64} = phenomes.phenotypes[idx_entries, idx_trait]
-    # Omit entries missing phenotype data
-    idx::Vector{Int64} = findall(ismissing.(y) .== false)
+    # Omit entries missing, nan and infinite phenotype data
+    idx::Vector{Int64} = findall(.!ismissing.(y) .&& .!isnan.(y) .&& .!isinf(y))
     if length(idx) < 2
         throw(
             ArgumentError(
