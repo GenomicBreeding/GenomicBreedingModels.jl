@@ -10,7 +10,6 @@ function bglr(;
     response_type::String = ["gaussian", "ordinal"][1],
     n_iter::Int64 = 1_500,
     n_burnin::Int64 = 500,
-    prefix_tmp_out::String = "tmpout", 
     verbose::Bool = false,
 )::Vector{Float64}
     # genomes = GBCore.simulategenomes(n=1_000, l=1_750, verbose=true)
@@ -19,7 +18,12 @@ function bglr(;
     # G::Matrix{Float64} = genomes.allele_frequencies
     # y::Vector{Float64} = phenomes.phenotypes[:, 1]
     # model=["BayesA", "BayesB", "BayesC"][1]; response_type = ["gaussian", "ordinal"][1]; n_iter=10_500; n_burnin=100; verbose = true;
+    prefix_tmp_out = string("bglr-tmp-", Dates.format(now(), "yyyymmddHHMMSSssss"), "-", Int64(round(rand() * rand() * 1_000_000_000)))
     fname_yG = string(prefix_tmp_out, "-yG.tsv")
+    fname_R = string(prefix_tmp_out, ".R")
+    while isfile(fname_yG) || isfile(fname_R)
+        prefix_tmp_out = string("bglr-tmp-", Dates.format(now(), "yyyymmddHHMMSSssss"), "-", Int64(round(rand() * rand() * 1_000_000_000)))
+    end
     open(fname_yG, "w") do file
         for i in eachindex(y)
             line = join(vcat(y[i], G[i, :]), "\t")
@@ -27,7 +31,6 @@ function bglr(;
             write(file, line)
         end
     end
-    fname_R = string(prefix_tmp_out, ".R")
     fname_bhat = string(prefix_tmp_out, "-bhat.tsv")
     open(fname_R, "w") do file
         line_1 = "library(BGLR)\n"
@@ -132,14 +135,6 @@ function bayesian(
     fit.populations = populations
     fit.y_true = y
     # R-BGLR
-    prefix_tmp_out = string(
-        bglr_model,
-        "-tmp-out-",
-        hash(string.(vcat(idx_entries, idx_trait, [bglr_model, response_type, n_iter, n_burnin, verbose]))),
-        "-",
-        Dates.format(now(), "yyyymmddHHMMSSssss"),
-        Int64(round(rand() * rand() * 1_000_000_000)),
-    )
     b_hat = bglr(
         G = X[:, 2:end],
         y = y,
@@ -147,7 +142,6 @@ function bayesian(
         response_type = response_type,
         n_iter = n_iter,
         n_burnin = n_burnin,
-        prefix_tmp_out = prefix_tmp_out, 
         verbose = verbose,
     )
     # Clean-up BGLR temp files
