@@ -840,6 +840,7 @@ function cvleaveonepopulationout(;
             idx_validation = findall(
                 phenomes.populations .== validation_population .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ),
             )
+            training_population = join(populations[populations .!= validation_population], ";")
             if (length(idx_training) < 2 || length(idx_validation) < 1)
                 push!(
                     notes,
