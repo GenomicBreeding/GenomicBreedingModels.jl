@@ -88,9 +88,9 @@ function extractxyetc(
         end
     end
     # Extract the response variable
-    y::Vector{Float64} = phenomes.phenotypes[idx_entries, idx_trait]
+    ϕ = phenomes.phenotypes[idx_entries, idx_trait]
     # Omit entries missing, nan and infinite phenotype data
-    idx::Vector{Int64} = findall(.!ismissing.(y) .&& .!isnan.(y) .&& .!isinf.(y))
+    idx::Vector{Int64} = findall(.!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ))
     if length(idx) < 2
         throw(
             ArgumentError(
@@ -98,7 +98,7 @@ function extractxyetc(
             ),
         )
     end
-    y = y[idx]
+    y::Vector{Float64} = ϕ[idx]
     if var(y) < 1e-20
         throw(ErrorException("Very low or zero variance in trait: `" * phenomes.traits[idx_trait] * "`."))
     end
