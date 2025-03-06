@@ -8,13 +8,7 @@ Genomic prediction models for GenomicBreeding.jl.
 
 ## Installation
 
-This uses the [R package BGLR](https://github.com/gdlc/BGLR-R) called [via RCall.jl](https://github.com/JuliaInterop/RCall.jl). We therefore need to install R and the BGLR package first:
-
-```julia
-using Pkg
-R_HOME='*'
-Pkg.build("RCall")
-```
+This uses the [R package BGLR](https://github.com/gdlc/BGLR-R). We therefore need to install R and the BGLR package first. To help with this, Conda maybe used by loading the environment file: [`misc/GenomicBreeding_conda.yml`](misc/GenomicBreeding_conda.yml).
 
 Then install GBModels.jl:
 

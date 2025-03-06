@@ -18,11 +18,21 @@ function bglr(;
     # G::Matrix{Float64} = genomes.allele_frequencies
     # y::Vector{Float64} = phenomes.phenotypes[:, 1]
     # model=["BayesA", "BayesB", "BayesC"][1]; response_type = ["gaussian", "ordinal"][1]; n_iter=10_500; n_burnin=100; verbose = true;
-    prefix_tmp_out = string("bglr-tmp-", Dates.format(now(), "yyyymmddHHMMSSssss"), "-", Int64(round(rand() * rand() * 1_000_000_000)))
+    prefix_tmp_out = string(
+        "bglr-tmp-",
+        Dates.format(now(), "yyyymmddHHMMSSssss"),
+        "-",
+        Int64(round(rand() * rand() * 1_000_000_000)),
+    )
     fname_yG = string(prefix_tmp_out, "-yG.tsv")
     fname_R = string(prefix_tmp_out, ".R")
     while isfile(fname_yG) || isfile(fname_R)
-        prefix_tmp_out = string("bglr-tmp-", Dates.format(now(), "yyyymmddHHMMSSssss"), "-", Int64(round(rand() * rand() * 1_000_000_000)))
+        prefix_tmp_out = string(
+            "bglr-tmp-",
+            Dates.format(now(), "yyyymmddHHMMSSssss"),
+            "-",
+            Int64(round(rand() * rand() * 1_000_000_000)),
+        )
     end
     open(fname_yG, "w") do file
         for i in eachindex(y)
@@ -115,7 +125,7 @@ function bayesian(
     # genomes = GBCore.simulategenomes()
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; response_type::String = ["gaussian", "ordinal"][1];
-    # idx_entries = nothing, idx_loci_alleles = nothing
+    # idx_entries = nothing; idx_loci_alleles = nothing
     # n_burnin = 500; n_iter = 1_500; verbose = true;
     # Check arguments and extract X, y, and loci-allele names
     X, y, entries, populations, loci_alleles = extractxyetc(

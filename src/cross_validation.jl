@@ -407,7 +407,7 @@ true
 julia> summary_across, summary_per_entry = summarise(cvs);
 
 julia> size(summary_across)
-(6, 6)
+(6, 8)
 
 julia> size(summary_per_entry)
 (200, 8)
@@ -840,7 +840,7 @@ function cvleaveonepopulationout(;
             idx_validation = findall(
                 phenomes.populations .== validation_population .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ),
             )
-            training_population = join(populations[populations .!= validation_population], ";")
+            training_population = join(populations[populations.!=validation_population], ";")
             if (length(idx_training) < 2 || length(idx_validation) < 1)
                 push!(
                     notes,
