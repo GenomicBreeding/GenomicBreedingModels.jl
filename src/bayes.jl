@@ -1,5 +1,26 @@
 """
-Bayesian models using BGLR, i.e. Bayes A, Bayes B and Bayes C
+    bglr(; G::Matrix{Float64}, y::Vector{Float64}, model::String="BayesA", 
+         response_type::String="gaussian", n_iter::Int64=1_500, 
+         n_burnin::Int64=500, verbose::Bool=false)::Vector{Float64}
+
+Perform Bayesian genomic prediction using the BGLR (Bayesian Generalized Linear Regression) R package.
+
+# Arguments
+- `G::Matrix{Float64}`: Marker matrix where rows represent individuals and columns represent markers
+- `y::Vector{Float64}`: Vector of phenotypic values
+- `model::String`: Bayesian model type to use. Options: "BayesA", "BayesB", or "BayesC". Default: "BayesA"
+- `response_type::String`: Type of response variable. Options: "gaussian" or "ordinal". Default: "gaussian"
+- `n_iter::Int64`: Number of iterations for the MCMC chain. Default: 1,500
+- `n_burnin::Int64`: Number of burn-in iterations to discard. Default: 500
+- `verbose::Bool`: Whether to print progress information. Default: false
+
+# Returns
+- `Vector{Float64}`: Estimated effects including the intercept (first element) followed by marker effects
+
+# Details
+This function creates temporary files to interface with R's BGLR package, runs the Bayesian analysis,
+and automatically cleans up temporary files afterward. The function uses the system's R installation 
+and requires the BGLR package to be installed in R.
 
 Note that this is hacky. It invokes Rscript for each instance which should allow multi-threading where RCall.jl currently does not.
 """
