@@ -22,7 +22,8 @@ This function creates temporary files to interface with R's BGLR package, runs t
 and automatically cleans up temporary files afterward. The function uses the system's R installation 
 and requires the BGLR package to be installed in R.
 
-Note that this is hacky. It invokes Rscript for each instance which should allow multi-threading where RCall.jl currently does not.
+# Notes
+This is hacky. It invokes Rscript for each instance which should allow multithreading because RCall.jl currently does not allow multithreading.
 """
 function bglr(;
     G::Matrix{Float64},
@@ -103,20 +104,47 @@ function bglr(;
     b_hat
 end
 
-
 """
     bayesian(
         bglr_model::String;
-        X::Matrix{Float64},
-        y::Vector{Float64},
+        genomes::Genomes,
+        phenomes::Phenomes,
+        idx_entries::Union{Nothing,Vector{Int64}} = nothing,
+        idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
+        idx_trait::Int64 = 1,
+        response_type::String = ["gaussian", "ordinal"][1], 
         n_burnin::Int64 = 500,
-        n_iter::Int64 = 1_500,
-        verbose::Bool = false,
+        n_iter::Int64 = 1_500, 
+        verbose::Bool = false
     )::Fit
 
-Fit a Bayesian linear regression models via BGLR in R
+Fit Bayesian genomic prediction models using the BGLR R package.
 
-## Examples
+# Arguments
+- `bglr_model::String`: Type of BGLR model to fit. Options: "BayesA", "BayesB", "BayesC"
+- `genomes::Genomes`: Genotype data in Genomes format
+- `phenomes::Phenomes`: Phenotype data in Phenomes format
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset entries 
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset loci/alleles
+- `idx_trait::Int64`: Index of trait to analyze (default: 1)
+- `response_type::String`: Type of response variable. Options: "gaussian" or "ordinal" (default: "gaussian")
+- `n_burnin::Int64`: Number of burn-in MCMC iterations (default: 500)
+- `n_iter::Int64`: Total number of MCMC iterations (default: 1,500)
+- `verbose::Bool`: Whether to print progress information (default: false)
+
+# Returns
+- `Fit`: Object containing:
+  - Model fit summary
+  - Estimated genetic effects
+  - Predicted values  
+  - Model performance metrics
+  - Input data details
+
+# Details
+This function provides a Julia interface to the BGLR R package for Bayesian genomic prediction.
+It uses temporary files to interface with R and automatically cleans up afterward.
+
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
@@ -219,7 +247,6 @@ benchmarks = TuringBenchmarking.benchmark_model(
     # Automatic differentiation backends to check and benchmark
     adbackends=[:forwarddiff, :reversediff, :reversediff_compiled, :zygote]
 )
-
 
 # Test more loci
 genomes = GBCore.simulategenomes(n=10, l=10_000)

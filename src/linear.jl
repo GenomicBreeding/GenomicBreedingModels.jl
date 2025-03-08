@@ -5,12 +5,36 @@
         idx_entries::Union{Nothing,Vector{Int64}} = nothing,
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
         idx_trait::Int64 = 1,
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Fit
 
-Fit an ordinary least squares model
+Fits an ordinary least squares (OLS) regression model to genomic and phenotypic data.
 
-## Examples
+# Arguments
+- `genomes::Genomes`: Genomic data containing genetic markers
+- `phenomes::Phenomes`: Phenotypic data containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries (default: all entries)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci-alleles (default: all loci-alleles)
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `verbose::Bool`: If true, displays diagnostic plots and performance metrics (default: false)
+
+# Returns
+- `Fit`: A fitted model object containing:
+  - `model`: Model identifier ("ols")
+  - `b_hat`: Estimated regression coefficients
+  - `b_hat_labels`: Labels for the coefficients
+  - `y_true`: Observed phenotypic values
+  - `y_pred`: Predicted phenotypic values
+  - `metrics`: Dictionary of performance metrics
+  - `trait`: Name of the analyzed trait
+  - `entries`: Entry identifiers
+  - `populations`: Population identifiers
+
+# Description
+Performs ordinary least squares regression on genomic data to predict phenotypic values.
+The model includes an intercept term and estimates effects for each locus-allele combination.
+
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
@@ -86,12 +110,37 @@ end
         idx_entries::Union{Nothing,Vector{Int64}} = nothing,
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
         idx_trait::Int64 = 1,
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Fit
 
-Fit a ridge (L2) regression model
+Fit a ridge (L2) regression model to genomic data. Ridge regression adds an L2 regularization term 
+to the ordinary least squares objective function, which helps prevent overfitting and handles 
+multicollinearity in the predictors.
 
-## Examples
+# Arguments
+- `genomes::Genomes`: Genomic data structure containing genetic markers
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific entries/individuals
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific loci-alleles
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `verbose::Bool`: If true, prints diagnostic plots and additional information (default: false)
+
+# Returns
+- `Fit`: A structure containing:
+  - `model`: Model name ("ridge")
+  - `b_hat`: Estimated coefficients (including intercept)
+  - `b_hat_labels`: Labels for the coefficients
+  - `metrics`: Performance metrics including correlation and error measures
+  - `y_true`: Observed phenotypic values
+  - `y_pred`: Predicted phenotypic values
+  - Other model metadata
+
+# Notes
+- Uses cross-validation to select the optimal regularization parameter (λ)
+- Standardizes predictors before fitting
+- Includes an intercept term in the model
+
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 

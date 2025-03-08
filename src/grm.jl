@@ -6,7 +6,27 @@
         verbose::Bool = false
     )::Matrix{Float64}
 
-Generate a simple genetic relationship matrix whose diagonals are likely inflated to allow inversion in dowstream analysis.
+Generate a simple genetic relationship matrix (GRM) from genomic data.
+
+# Arguments
+- `genomes::Genomes`: A Genomes object containing genetic information
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries/individuals
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci/alleles
+- `verbose::Bool`: If true, displays a heatmap visualization of the GRM
+
+# Returns
+- `Matrix{Float64}`: A symmetric positive definite genetic relationship matrix
+
+# Details
+The function computes a genetic relationship matrix by:
+1. Converting genomic data to a numerical matrix
+2. Computing GRM as G * G' / ncol(G)
+3. Adding small positive values to diagonal elements if necessary to ensure matrix invertibility
+
+# Notes
+- The resulting matrix is always symmetric
+- Diagonal elements may be slightly inflated to ensure matrix invertibility
+- The matrix dimensions will be n×n where n is the number of entries/individuals
 
 # Example
 ```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
@@ -65,7 +85,28 @@ end
         verbose::Bool = false
     )::Matrix{Float64}
 
-Generate a ploidy-aware genetic relationship matrix (see Bell et al (2017) and VanRaden et al (2008)) whose diagonals are likely inflated to allow inversion in dowstream analysis.
+Generate a ploidy-aware genetic relationship matrix (GRM) based on the methods described in 
+Bell et al. (2017) and VanRaden et al. (2008).
+
+# Arguments
+- `genomes::Genomes`: Input genomic data structure containing genetic information
+- `ploidy::Int64`: Number of chromosome copies in the organism (default: 2)
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries (default: nothing)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci/alleles (default: nothing)
+- `verbose::Bool`: If true, displays a heatmap of the resulting GRM (default: false)
+
+# Returns
+- `Matrix{Float64}`: A symmetric genetic relationship matrix with dimensions (n × n), where n is the number of entries
+
+# Details
+The function implements the following steps:
+1. Extracts and processes genomic data
+2. Calculates allele frequencies and centers the data
+3. Computes the GRM using VanRaden's method
+4. Ensures matrix invertibility by adding small values to the diagonal if necessary
+
+# Note
+The diagonal elements may be slightly inflated to ensure matrix invertibility for downstream analyses.
 
 # Example
 ```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)

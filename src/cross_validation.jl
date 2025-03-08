@@ -2,13 +2,33 @@
     validate(
         fit::Fit,
         genomes::Genomes,
-        phenomes::Phenomes; 
+        phenomes::Phenomes;
         idx_validation::Vector{Int64},
         replication::String="",
         fold::String=""
     )::CV
 
-Assess the accuracy of a genomic prediction model fit on a validation set of entries
+Evaluate the predictive accuracy of a genomic prediction model on a validation dataset.
+
+# Arguments
+- `fit::Fit`: A fitted genomic prediction model
+- `genomes::Genomes`: Genomic data containing marker information
+- `phenomes::Phenomes`: Phenotypic data containing trait measurements
+- `idx_validation::Vector{Int64}`: Indices of entries to use for validation
+- `replication::String`: Optional identifier for the validation replication
+- `fold::String`: Optional identifier for the cross-validation fold
+
+# Returns
+- `CV`: A cross-validation result object containing:
+  - Validation metrics (correlation, RMSE, etc.)
+  - True and predicted values
+  - Entry and population information
+  - Model specifications
+
+# Notes
+- Performs checks for data leakage between training and validation sets
+- Handles missing, NaN, and Inf values in phenotypic data
+- Validates dimensions of output CV struct
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
@@ -63,14 +83,33 @@ function validate(
 end
 
 """
-    cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, models::Vector{Function})
+    cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, models_vector, verbose::Bool = true)::Vector{CV}
 
-Multi-threded generic genomic prediction cross-validation 
+Perform multi-threaded genomic prediction cross-validation using specified models.
 
-Note that to use multiple threads, please invoke Julia as: `julia --threads 7,1 --load test/interactive_prelude.jl`,
-where `--threads 7,1` means use 7 threads for multi-threaded processes while reserving 1 thread for the Julia runtime itself.
+# Arguments
+- `cvs::Vector{CV}`: Vector of cross-validation objects to be processed
+- `genomes::Genomes`: Genomic data containing genetic information
+- `phenomes::Phenomes`: Phenotypic data containing trait measurements
+- `models_vector`: Vector of model functions to be used for prediction (e.g., [ridge, bayesa])
+- `verbose::Bool=true`: Whether to display progress bar during computation
 
-# Examples
+# Returns
+- Modified `cvs` vector with updated cross-validation results
+
+# Threading
+Requires Julia to be started with multiple threads to utilize parallel processing.
+Example startup command: `julia --threads 7,1` (7 worker threads, 1 runtime thread)
+
+# Details
+The function performs cross-validation in parallel for each CV object using the corresponding model
+from the models_vector. For each fold:
+1. Extracts training and validation indices
+2. Fits the specified model using training data
+3. Validates the model using validation data
+4. Updates the CV object with prediction results
+
+# Example
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
@@ -177,12 +216,34 @@ end
         verbose::Bool=true
     )::Tuple{Vector{CV}, Vector{String}}
 
-Bulk (regardless of population groupings) replicated cross-validation of genomic prediction model/s across all available traits. 
+Perform replicated k-fold cross-validation of genomic prediction model(s) across all available traits
+and entries, ignoring populations.
 
-Note that to use multiple threads, please invoke Julia as: `julia --threads 7,1 --load test/interactive_prelude.jl`,
-where `--threads 7,1` means use 7 threads for multi-threaded processes while reserving 1 thread for the Julia runtime itself.
+# Arguments
+- `genomes::Genomes`: Object containing genomic marker data 
+- `phenomes::Phenomes`: Object containing phenotypic trait data
+- `models::Vector{Function}`: Vector of genomic prediction model functions to evaluate
+- `n_replications::Int64`: Number of times to repeat k-fold cross-validation (default: 5)
+- `n_folds::Int64`: Number of cross-validation folds (default: 5) 
+- `seed::Int64`: Random seed for reproducibility (default: 42)
+- `verbose::Bool`: Whether to display progress information (default: true)
 
-## Examples
+# Returns
+- Tuple containing:
+  - Vector of CV objects with cross-validation results
+  - Vector of warning messages about skipped cases
+
+# Threading
+Uses multiple threads if Julia is started with threading enabled.
+Example startup command: `julia --threads 7,1` (7 worker threads, 1 runtime thread)
+
+# Notes
+- Performs random k-fold partitioning of entries ignoring population structure
+- Handles missing/invalid phenotype values
+- Validates model inputs and data dimensions
+- Returns warnings for cases with insufficient data or zero variance
+
+# Example
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
 julia> genomes = GBCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
@@ -358,8 +419,6 @@ function cvbulk(;
     (cvs, notes)
 end
 
-
-
 """
     cvperpopulation(;
         genomes::Genomes,
@@ -371,12 +430,37 @@ end
         verbose::Bool=true
     )::Tuple{Vector{CV}, Vector{String}}
 
-Within population replicated cross-validation of genomic prediction model/s across all available traits.
+Performs within-population replicated cross-validation of genomic prediction models across all available traits.
 
-Note that to use multiple threads, please invoke Julia as: `julia --threads 7,1 --load test/interactive_prelude.jl`,
-where `--threads 7,1` means use 7 threads for multi-threaded processes while reserving 1 thread for the Julia runtime itself.
+# Arguments
+- `genomes::Genomes`: A Genomes struct containing genetic information and population assignments
+- `phenomes::Phenomes`: A Phenomes struct containing phenotypic data for traits
+- `models::Vector{Function}=[ridge]`: Vector of genomic prediction model functions to evaluate
+- `n_replications::Int64=5`: Number of replications for cross-validation
+- `n_folds::Int64=5`: Number of folds for k-fold cross-validation
+- `seed::Int64=42`: Random seed for reproducibility
+- `verbose::Bool=true`: Whether to print progress information
 
-## Examples
+# Returns
+- `Tuple{Vector{CV}, Vector{String}}`: A tuple containing:
+    - Vector of CV objects with cross-validation results
+    - Vector of notes/warnings generated during the process
+
+# Details
+The function performs separate cross-validations for each unique population in the dataset.
+Supports multiple genomic prediction models including:
+- `ols`: Ordinary Least Squares
+- `ridge`: Ridge Regression
+- `lasso`: Lasso Regression
+- `bayesa`: Bayes A
+- `bayesb`: Bayes B
+- `bayesc`: Bayes C
+
+# Threading
+To use multiple threads, invoke Julia with: `julia --threads n,1` where n is the desired number of threads
+for multi-threaded processes and 1 is reserved for the Julia runtime.
+
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase; import GBModels: ridge)
 julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
@@ -515,17 +599,40 @@ end
         phenomes::Phenomes,
         models::Vector{Function}=[ridge],
         n_replications::Int64=5,
-        n_folds::Int64=5,
+        n_folds::Int64=5, 
         seed::Int64=42,
         verbose::Bool=true
     )::Tuple{Vector{CV}, Vector{String}}
 
-Pairwise population cross-validation of genomic prediction model/s across all available traits.
+Performs pairwise cross-validation between populations for genomic prediction models.
 
-Note that to use multiple threads, please invoke Julia as: `julia --threads 7,1 --load test/interactive_prelude.jl`,
-where `--threads 7,1` means use 7 threads for multi-threaded processes while reserving 1 thread for the Julia runtime itself.
+# Arguments
+- `genomes::Genomes`: Genomic data containing marker information
+- `phenomes::Phenomes`: Phenotypic data containing trait measurements
+- `models::Vector{Function}`: Vector of genomic prediction model functions to evaluate (default: [ridge])
+- `n_replications::Int64`: Number of replications (unused, maintained for API consistency)
+- `n_folds::Int64`: Number of folds (unused, maintained for API consistency)  
+- `seed::Int64`: Random seed (unused, maintained for API consistency)
+- `verbose::Bool`: Whether to display progress information
 
-## Examples
+# Returns
+- `Tuple{Vector{CV}, Vector{String}}`: 
+    - Vector of CV objects containing cross-validation results
+    - Vector of warning messages for skipped validations
+
+# Details
+For each pair of populations (pop1, pop2):
+1. Uses pop1 as training set and pop2 as validation set
+2. Skips within-population validation (pop1==pop2)
+3. Evaluates each model on all available traits
+4. Handles missing/invalid phenotype values
+5. Validates model inputs and data dimensions
+
+# Threading
+Requires Julia to be started with multiple threads:
+`julia --threads n,1` where n is number of worker threads
+
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
 julia> genomes = GBCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
@@ -730,12 +837,44 @@ end
         verbose::Bool=true
     )::Tuple{Vector{CV}, Vector{String}}
 
-Leave-one-population-out cross-validation of genomic prediction model/s across all available traits.
+Performs leave-one-population-out cross-validation for genomic prediction models across all available traits.
 
-Note that to use multiple threads, please invoke Julia as: `julia --threads 7,1 --load test/interactive_prelude.jl`,
-where `--threads 7,1` means use 7 threads for multi-threaded processes while reserving 1 thread for the Julia runtime itself.
+# Arguments
+- `genomes::Genomes`: A Genomes struct containing genetic information and population assignments
+- `phenomes::Phenomes`: A Phenomes struct containing phenotypic data for traits
+- `models::Vector{Function}`: Vector of model functions to evaluate (default: [ridge])
+- `n_replications::Int64`: Number of replications (not used in this implementation)
+- `n_folds::Int64`: Number of folds (not used in this implementation)
+- `seed::Int64`: Random seed (not used in this implementation)
+- `verbose::Bool`: If true, displays progress information during execution
 
-## Examples
+# Returns
+- `Tuple{Vector{CV}, Vector{String}}`: Returns a tuple containing:
+  - Vector of CV objects with cross-validation results
+  - Vector of warning/error messages for skipped validations
+
+# Details
+The function implements a leave-one-population-out cross-validation strategy where:
+1. For each trait and population combination:
+   - Uses one population as validation set
+   - Uses remaining populations as training set
+2. Evaluates multiple genomic prediction models
+3. Handles missing data and variance checks
+4. Supports parallel processing via Julia's multi-threading
+
+# Threading
+To utilize multiple threads, start Julia with: `julia --threads n,1` where n is the desired number of threads
+for computation and 1 is reserved for the runtime.
+
+# Supported Models
+- ols (Ordinary Least Squares)
+- ridge (Ridge Regression)
+- lasso (Lasso Regression)
+- bayesa (Bayes A)
+- bayesb (Bayes B)
+- bayesc (Bayes C)
+
+# Example
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase)
 julia> genomes = GBCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 

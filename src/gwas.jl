@@ -10,7 +10,31 @@
         verbose::Bool = false,
     )::Tuple{Matrix{Float64},Vector{Float64},Matrix{Float64},Fit}
 
-Prepare the allele frequency matrix, phenotype vector, genetic relationship matrix and genotype-to-phenotype regression fit struct (G, y, GRM, fit)
+Prepare data matrices and structures for genome-wide association studies (GWAS).
+
+# Arguments
+- `genomes`: Genomic data containing allele frequencies
+- `phenomes`: Phenotypic data containing trait measurements
+- `idx_entries`: Optional vector of indices to subset entries
+- `idx_loci_alleles`: Optional vector of indices to subset loci/alleles
+- `idx_trait`: Index of trait to analyze (default: 1)
+- `GRM_type`: Type of genetic relationship matrix, either "simple" or "ploidy-aware"
+- `standardise`: Whether to standardize the data matrices (default: true)
+- `verbose`: Whether to print progress information (default: false)
+
+# Returns
+A tuple containing:
+- `G`: Standardized allele frequency matrix
+- `y`: Standardized phenotype vector  
+- `GRM`: Genetic relationship matrix
+- `fit`: Initialized Fit struct for GWAS results
+
+# Details
+- Performs data validation and preprocessing for GWAS analysis
+- Removes fixed loci with no variation
+- Standardizes genomic and phenotypic data if requested
+- Constructs appropriate genetic relationship matrix
+- Initializes output structure for association results
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
@@ -126,8 +150,28 @@ end
         verbose::Bool = false,
     )::Fit
 
-Genome-association analysis via ordinary least squares using the first principal component of the 
-genetic relationship matrix as covariate to account for population structure.
+Perform genome-wide association study (GWAS) using ordinary least squares (OLS) regression with population structure correction.
+
+# Arguments
+- `genomes::Genomes`: Genomic data structure containing genetic markers
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset entries (default: all entries)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset loci/alleles (default: all loci)
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `GRM_type::String`: Type of genetic relationship matrix to use ("simple" or "ploidy-aware") (default: "simple")
+- `verbose::Bool`: Whether to display progress and plots (default: false)
+
+# Returns
+- `Fit`: A structure containing GWAS results including:
+  - `model`: Model identifier ("GWAS_OLS")
+  - `b_hat`: Vector of effect size estimates/t-statistics for each marker
+  - Additional model information
+
+# Details
+The function implements GWAS using OLS regression while accounting for population structure
+through the first principal component of the genetic relationship matrix (GRM) as a covariate.
+Two types of GRM can be used: "simple" assumes diploid organisms, while "ploidy-aware"
+accounts for different ploidy levels.
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
@@ -155,7 +199,7 @@ julia> fit_2.model
 
 julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
 true
-```;
+```
 """
 function gwasols(;
     genomes::Genomes,
@@ -220,11 +264,37 @@ end
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
         idx_trait::Int64 = 1,
         GRM_type::String = ["simple", "ploidy-aware"][1],
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Fit
 
-Genome-association analysis via linear mixed modelling using the first principal component of the genetic relationship matrix,
-where the covariance matrix of the genotype effects is unstructured.
+Perform genome-wide association analysis using a linear mixed model (LMM) approach.
+
+# Arguments
+- `genomes::Genomes`: Genomic data structure containing genetic information
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices for subsetting entries
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices for subsetting loci/alleles
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `GRM_type::String`: Type of genetic relationship matrix to use:
+    - "simple": Standard GRM calculation
+    - "ploidy-aware": Ploidy-adjusted GRM calculation
+- `verbose::Bool`: Whether to display progress and plots (default: false)
+
+# Returns
+- `Fit`: A structure containing GWAS results including:
+    - `model`: Model identifier ("GWAS_LMM")
+    - `b_hat`: Vector of test statistics (z-scores) for genetic markers
+
+# Details
+The function implements a mixed model GWAS using the first principal component of the genetic 
+relationship matrix (GRM) as a fixed effect to control for population structure. The model 
+includes random effects for entries and uses REML estimation.
+
+# Notes
+- Handles both diploid and polyploid data through the `GRM_type` parameter
+- Uses multi-threading for parallel computation of marker effects
+- Includes automatic convergence retry on fitting failures
+- Maximum fitting time per marker is limited to 60 seconds
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase, Suppressor)
@@ -252,7 +322,7 @@ julia> fit_2.model
 
 julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
 true
-```;
+```
 """
 function gwaslmm(;
     genomes::Genomes,
@@ -329,20 +399,30 @@ end
 """
     loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64},Matrix{Float64},Matrix{Float64}})::Float64
 
-Restricted maximum likelihood function gor genome-wide asociation
+Calculate the restricted maximum likelihood (REML) log-likelihood for a mixed linear model.
 
-Model:
+# Arguments
+- `θ::Vector{Float64}`: Vector of variance components [σ²_e, σ²_u] where:
+    - σ²_e is the residual variance
+    - σ²_u is the genetic variance
+- `data::Tuple{Vector{Float64},Matrix{Float64},Matrix{Float64}}`: Tuple containing:
+    - y: Vector of phenotypic observations
+    - X: Design matrix for fixed effects
+    - GRM: Genomic relationship matrix
 
-```
-y = Xb + Zu + e
-```
+# Returns
+- `Float64`: The REML log-likelihood value. Returns `Inf` if matrix operations fail.
 
+# Details
+Implements the REML log-likelihood calculation for a mixed model of the form:
+y = Xβ + Zu + e
 where:
+- β are fixed effects
+- u are random genetic effects with u ~ N(0, σ²_u * GRM)
+- e are residual effects with e ~ N(0, σ²_e * I)
 
-```
-u ~ N(0.0, σ²_u * GRM)
-y ~ N(Xb, σ²_u * GRM + σ²_e * I)
-```
+The function constructs the variance-covariance matrices and computes the REML transformation
+to obtain the log-likelihood value used in variance component estimation.
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
@@ -407,12 +487,34 @@ end
         idx_entries::Union{Nothing,Vector{Int64}} = nothing,
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
         idx_trait::Int64 = 1,
-        GRM_type::String = ["simple", "ploidy-aware"][1],
-        verbose::Bool = false,
+        GRM_type::String = "simple",
+        verbose::Bool = false
     )::Fit
 
-Genome-association analysis via restricted likelihood estimation,
-where the genetic relationship matrix multiplied by σ²_g is the covariance matrix of the genotype effects.
+Performs genome-wide association analysis using restricted maximum likelihood estimation (REML).
+
+# Arguments
+- `genomes::Genomes`: Genomic data structure containing genetic markers
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset entries (default: nothing)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset loci/alleles (default: nothing)
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `GRM_type::String`: Type of genetic relationship matrix to use, either "simple" or "ploidy-aware" (default: "simple")
+- `verbose::Bool`: Whether to display progress and plots (default: false)
+
+# Returns
+- `::Fit`: A Fit struct containing GWAS results, including effect estimates and test statistics
+
+# Details
+Implements the REML log-likelihood calculation for a mixed model of the form:
+y = Xβ + Zu + e
+where:
+- β are fixed effects
+- u are random genetic effects with u ~ N(0, σ²_u * GRM)
+- e are residual effects with e ~ N(0, σ²_e * I)
+
+The function constructs the variance-covariance matrices and computes the REML transformation
+to obtain the log-likelihood value used in variance component estimation.
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra, StatsBase)
@@ -440,7 +542,7 @@ julia> fit_2.model
 
 julia> findall(fit_1.b_hat .== maximum(fit_1.b_hat)) == findall(fit_2.b_hat .== maximum(fit_2.b_hat))
 true
-```;
+```
 """
 function gwasreml(;
     genomes::Genomes,
