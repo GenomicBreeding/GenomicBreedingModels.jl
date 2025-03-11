@@ -5,10 +5,33 @@
         idx_entries::Union{Nothing,Vector{Int64}} = nothing,
         idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
         idx_trait::Int64 = 1,
-        add_intercept::Bool = true,
-    )::Tuple{Matrix{Float64},Vector{Float64},Vector{String},Vector{String},Vector{String}}
+        add_intercept::Bool = true
+    ) -> Tuple{Matrix{Float64}, Vector{Float64}, Vector{String}, Vector{String}, Vector{String}}
 
-Extract explanatory `X` matrix, response `y` vector, names of the entries, populations and loci-alleles from genomes and phenomes.
+Extract data matrices and vectors from genomic and phenotypic data for statistical analyses.
+
+# Arguments
+- `genomes::Genomes`: Structure containing genomic data including allele frequencies and entry information
+- `phenomes::Phenomes`: Structure containing phenotypic data for the entries
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries (default: all entries)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci-alleles (default: all loci-alleles)
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `add_intercept::Bool`: Whether to add an intercept column to the design matrix (default: true)
+
+# Returns
+A tuple containing:
+1. `X::Matrix{Float64}`: Design matrix with allele frequencies (and intercept if specified)
+2. `y::Vector{Float64}`: Response vector with phenotypic values
+3. `entries::Vector{String}`: Names of the selected entries
+4. `populations::Vector{String}`: Population identifiers for the selected entries
+5. `loci_alleles::Vector{String}`: Names of the selected loci-alleles
+
+# Notes
+- The function filters out entries with missing, NaN, or infinite phenotype values
+- Requires at least 2 valid entries after filtering
+- Checks for non-zero variance in the trait values
+- Ensures consistency between genomic and phenotypic data dimensions
+- Validates all index inputs are within bounds
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
@@ -119,7 +142,33 @@ end
 """
     predict(; fit::Fit, genomes::Genomes, idx_entries::Vector{Int64})::Vector{Float64}
 
-Predict the phenotypes given a genomic prediction model fit, a genomes and the corresponding entries indexes
+Calculate predicted phenotypes using a fitted genomic prediction model.
+
+# Arguments
+- `fit::Fit`: A fitted genomic prediction model containing coefficients and model information
+- `genomes::Genomes`: Genomic data containing allele frequencies and genetic information
+- `idx_entries::Vector{Int64}`: Vector of indices specifying which entries to predict
+
+# Returns
+- `Vector{Float64}`: Predicted phenotypic values for the specified entries
+
+# Details
+Supports various linear genomic prediction models including:
+- OLS (Ordinary Least Squares)
+- Ridge Regression
+- LASSO
+- Bayes A
+- Bayes B
+- Bayes C
+
+The function validates input dimensions and compatibility between the fitted model and genomic data
+before making predictions.
+
+# Throws
+- `ArgumentError`: If the Fit or Genomes structs are corrupted
+- `ArgumentError`: If entry indices are out of bounds
+- `ArgumentError`: If loci-alleles in the fitted model don't match the validation set
+- `ArgumentError`: If the genomic prediction model is not recognized
 
 # Examples
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase)

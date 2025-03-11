@@ -11,8 +11,8 @@
 Fits an ordinary least squares (OLS) regression model to genomic and phenotypic data.
 
 # Arguments
-- `genomes::Genomes`: Genomic data containing genetic markers
-- `phenomes::Phenomes`: Phenotypic data containing trait measurements
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries (default: all entries)
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci-alleles (default: all loci-alleles)
 - `idx_trait::Int64`: Index of the trait to analyze (default: 1)
@@ -20,16 +20,16 @@ Fits an ordinary least squares (OLS) regression model to genomic and phenotypic 
 
 # Returns
 - `Fit`: A fitted model object containing:
-  - `model`: Model identifier ("ols")
-  - `b_hat`: Estimated regression coefficients
-  - `b_hat_labels`: Labels for the coefficients
-  - `y_true`: Observed phenotypic values
-  - `y_pred`: Predicted phenotypic values
-  - `metrics`: Dictionary of performance metrics
-  - `trait`: Name of the analyzed trait
-  - `entries`: Entry identifiers
-  - `populations`: Population identifiers
-
+  + `model`: Model identifier ("ols")
+  + `b_hat`: Estimated regression coefficients
+  + `b_hat_labels`: Labels for the coefficients
+  + `trait`: Name of the analyzed trait
+  + `entries`: Entry identifiers
+  + `populations`: Population identifiers
+  + `y_true`: Observed phenotypic values
+  + `y_pred`: Predicted phenotypic values
+  + `metrics`: Dictionary of performance metrics
+  
 # Description
 Performs ordinary least squares regression on genomic data to predict phenotypic values.
 The model includes an intercept term and estimates effects for each locus-allele combination.
@@ -118,7 +118,7 @@ to the ordinary least squares objective function, which helps prevent overfittin
 multicollinearity in the predictors.
 
 # Arguments
-- `genomes::Genomes`: Genomic data structure containing genetic markers
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
 - `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific entries/individuals
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific loci-alleles
@@ -126,15 +126,17 @@ multicollinearity in the predictors.
 - `verbose::Bool`: If true, prints diagnostic plots and additional information (default: false)
 
 # Returns
-- `Fit`: A structure containing:
-  - `model`: Model name ("ridge")
-  - `b_hat`: Estimated coefficients (including intercept)
-  - `b_hat_labels`: Labels for the coefficients
-  - `metrics`: Performance metrics including correlation and error measures
-  - `y_true`: Observed phenotypic values
-  - `y_pred`: Predicted phenotypic values
-  - Other model metadata
-
+- `Fit`: A fitted model object containing:
+  + `model`: Model identifier ("ols")
+  + `b_hat`: Estimated regression coefficients
+  + `b_hat_labels`: Labels for the coefficients
+  + `trait`: Name of the analyzed trait
+  + `entries`: Entry identifiers
+  + `populations`: Population identifiers
+  + `y_true`: Observed phenotypic values
+  + `y_pred`: Predicted phenotypic values
+  + `metrics`: Dictionary of performance metrics
+  
 # Notes
 - Uses cross-validation to select the optimal regularization parameter (λ)
 - Standardizes predictors before fitting
@@ -247,9 +249,40 @@ end
         verbose::Bool = false,
     )::Fit
 
-Fit a LASSO (least absolute shrinkage and selection operator; L1) regression model
+Fits a LASSO (Least Absolute Shrinkage and Selection Operator) regression model with L1 regularization 
+for genomic prediction.
 
-## Examples
+# Arguments
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries/individuals
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci-alleles
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `verbose::Bool`: If true, prints diagnostic plots and additional information (default: false)
+
+# Returns
+- `Fit`: A fitted model object containing:
+  + `model`: Model identifier ("ols")
+  + `b_hat`: Estimated regression coefficients
+  + `b_hat_labels`: Labels for the coefficients
+  + `trait`: Name of the analyzed trait
+  + `entries`: Entry identifiers
+  + `populations`: Population identifiers
+  + `y_true`: Observed phenotypic values
+  + `y_pred`: Predicted phenotypic values
+  + `metrics`: Dictionary of performance metrics
+  
+# Details
+The function implements LASSO regression using the GLMNet package, which performs automatic 
+feature selection through L1 regularization. The optimal regularization parameter (λ) is 
+selected using cross-validation to minimize prediction error while promoting sparsity in 
+the coefficients.
+
+# Notes
+- Standardisation is disabled by default because the allele frequencies across loci are comparable as they all range from zero to one
+- The model includes an intercept term
+
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
@@ -354,12 +387,40 @@ end
         idx_trait::Int64 = 1,
         n_iter::Int64 = 1_500,
         n_burnin::Int64 = 500,
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Fit
 
-Fit a Bayes A model via BGLR
+Fits a Bayes A model for genomic prediction using the BGLR method. Bayes A assumes marker effects follow
+a scaled-t distribution, allowing for different variances for each marker effect.
 
-## Examples
+# Arguments
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific entries/individuals
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific genetic markers
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `n_iter::Int64`: Number of iterations for the MCMC algorithm (default: 1,500)
+- `n_burnin::Int64`: Number of burn-in iterations to discard (default: 500)
+- `verbose::Bool`: Whether to print progress messages (default: false)
+
+# Returns
+- `Fit`: A fitted model object containing:
+  + `model`: Model identifier ("ols")
+  + `b_hat`: Estimated regression coefficients
+  + `b_hat_labels`: Labels for the coefficients
+  + `trait`: Name of the analyzed trait
+  + `entries`: Entry identifiers
+  + `populations`: Population identifiers
+  + `y_true`: Observed phenotypic values
+  + `y_pred`: Predicted phenotypic values
+  + `metrics`: Dictionary of performance metrics
+  
+# Notes
+- The model assumes a Gaussian distribution for the trait values
+- Recommended to check convergence by examining trace plots of key parameters
+- The burn-in period should be adjusted based on convergence diagnostics
+
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
@@ -412,12 +473,35 @@ end
         idx_trait::Int64 = 1,
         n_iter::Int64 = 1_500,
         n_burnin::Int64 = 500,
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Fit
 
-Fit a Bayes A model via BGLR
+Fits a Bayes B model for genomic prediction using the BGLR method. Bayes B assumes that marker effects follow
+a mixture distribution where some markers have zero effect and others follow a scaled-t distribution.
 
-## Examples
+# Arguments
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific entries (default: nothing)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific loci/alleles (default: nothing)
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `n_iter::Int64`: Number of iterations for the MCMC algorithm (default: 1,500)
+- `n_burnin::Int64`: Number of burn-in iterations to discard (default: 500)
+- `verbose::Bool`: Whether to print progress information (default: false)
+
+# Returns
+- `Fit`: A fitted model object containing:
+  + `model`: Model identifier ("ols")
+  + `b_hat`: Estimated regression coefficients
+  + `b_hat_labels`: Labels for the coefficients
+  + `trait`: Name of the analyzed trait
+  + `entries`: Entry identifiers
+  + `populations`: Population identifiers
+  + `y_true`: Observed phenotypic values
+  + `y_pred`: Predicted phenotypic values
+  + `metrics`: Dictionary of performance metrics
+  
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 
@@ -470,12 +554,35 @@ end
         idx_trait::Int64 = 1,
         n_iter::Int64 = 1_500,
         n_burnin::Int64 = 500,
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Fit
 
-Fit a Bayes A model via BGLR
+Fits a Bayes C model for genomic prediction using the BGLR method. Bayes C assumes that marker effects follow 
+a mixture distribution with a point mass at zero and a normal distribution.
 
-## Examples
+# Arguments
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific entries/individuals
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset specific loci/alleles
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `n_iter::Int64`: Number of iterations for MCMC sampling (default: 1,500)
+- `n_burnin::Int64`: Number of burn-in iterations to discard (default: 500)
+- `verbose::Bool`: Whether to print progress information (default: false)
+
+# Returns
+- `Fit`: A fitted model object containing:
+  + `model`: Model identifier ("ols")
+  + `b_hat`: Estimated regression coefficients
+  + `b_hat_labels`: Labels for the coefficients
+  + `trait`: Name of the analyzed trait
+  + `entries`: Entry identifiers
+  + `populations`: Population identifiers
+  + `y_true`: Observed phenotypic values
+  + `y_pred`: Predicted phenotypic values
+  + `metrics`: Dictionary of performance metrics
+  
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels)
 julia> genomes = GBCore.simulategenomes(verbose=false);
 

@@ -2,42 +2,54 @@
 """
     square(x) = x^2
 
-An endofunction within the zero to one domain which accepts a single input and squares it.
+This function takes a number and squares it.
+A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+Both input and ouput range between zero and one.
 """
 square(x) = x^2
 
 """
-    invoneplus(x) = sqrt(abs(x))
+    invoneplus(x) = 1 / (1 + x)
 
-An endofunction within the zero to one domain which accepts a single input and takes the inverse of one plus the input.
+This function takes a number, adds one and inverts it.
+A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+Both input and ouput range between zero and one.
 """
 invoneplus(x) = 1 / (1 + x)
 
 """
-    log10epsdivlog10eps(x)
+    log10epsdivlog10eps(x) = (log10(abs(x) + eps(Float64))) / log10(eps(Float64))
 
-An endofunction within the zero to one domain which accepts a single input and take its log10 corrected by machine epsilon to keep it in the domain.
+This function takes a number, adds a very tiny value, takes the log10, and divide it by the log10 of the same very tiny value.
+A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+Both input and ouput range between zero and one.
 """
-log10epsdivlog10eps(x) = (log10(abs(x) + eps(Float64))) / log10(eps(Float64))
+log10epsdivlog10eps(x) = (log10(x + eps(Float64))) / log10(eps(Float64))
 
 """
     mult(x, y) = x * y
 
-An endofunction within the zero to one domain which accepts two inputs and multiplies them.
+This function takes two numbers and multiplies them together.
+A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+Inputs and ouput range between zero and one.
 """
 mult(x, y) = x * y
 
 """
     addnorm(x, y) = (x + y) / 2.0
 
-An endofunction within the zero to one domain which accepts two inputs, and divides their sum by two.
+This function takes two numbers and finds their arithmetic mean.
+A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+Inputs and ouput range between zero and one.
 """
 addnorm(x, y) = (x + y) / 2.0
 
 """
     raise(x, y) = x^y
 
-An endofunction within the zero to one domain which accepts two inputs, and raises the first to the power of the second.
+This function raises the first value to the power of the second value.
+A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+Inputs and ouput range between zero and one.
 """
 raise(x, y) = x^y
 
@@ -53,11 +65,42 @@ raise(x, y) = x^y
         ϵ::Float64 = eps(Float64),
         use_abs::Bool = false,
         σ²_threshold::Float64 = 0.01,
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Genomes
 
-Apply a function to each allele frequency in genomes.
-Please Use named functions if you wish to reconstruct the transformation from the `loci_alleles` field.
+Apply a transformation function to each allele frequency in genomic data while considering their effects on phenotypes.
+
+# Arguments
+- `f::Function`: Transformation function to apply to allele frequencies
+- `genomes::Genomes`: Input genomic data structure
+- `phenomes::Phenomes`: Corresponding phenotypic data structure
+
+# Keywords
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Indices of entries to include (default: all)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Indices of loci-alleles to include (default: all)
+- `n_new_features_per_transformation::Int64`: Maximum number of transformed features to retain (default: 1000)
+- `ϵ::Float64`: Small value added to prevent numerical issues (default: machine epsilon)
+- `use_abs::Bool`: Whether to use absolute values before transformation (default: false)
+- `σ²_threshold::Float64`: Minimum variance threshold for considering a locus (default: 0.01)
+- `verbose::Bool`: Whether to show progress and plots (default: false)
+
+# Returns
+- `Genomes`: A new Genomes object containing the transformed allele frequencies
+
+# Details
+The function performs the following steps:
+1. Extracts allele frequencies and phenotypic data
+2. Applies the transformation function to each locus
+3. Estimates effects using ordinary least squares
+4. Selects the most important transformed features
+5. Cleans numerical artifacts (values near 0 or 1)
+
+# Notes
+- Use named functions to ensure transformations can be reconstructed from `loci_alleles`
+- The function adds `ϵ` to frequencies to prevent numerical issues
+- Features with variance below `σ²_threshold` are skipped
+- The output contains at most `n_new_features_per_transformation` features
 
 # Example
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
@@ -208,13 +251,43 @@ end
         use_abs::Bool = false,
         σ²_threshold::Float64 = 0.01,
         commutative::Bool = false,
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Genomes
 
-Apply a function to pairs of allele frequency in genomes.
-Please Use named functions if you wish to reconstruct the transformation from the `loci_alleles` field.
+Apply a transformation function to pairs of allele frequencies in genomic data while considering their effects on phenotypes.
 
-# Example
+# Arguments
+- `f::Function`: Transformation function to apply to pairs of allele frequencies
+- `genomes::Genomes`: Input genomic data structure
+- `phenomes::Phenomes`: Corresponding phenotypic data structure
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Subset of entries to include (default: all)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Subset of loci-alleles to include (default: all)
+- `n_new_features_per_transformation::Int64`: Maximum number of transformed features to retain (default: 1000)
+- `ϵ::Float64`: Small value added to frequencies to avoid numerical issues (default: machine epsilon)
+- `use_abs::Bool`: Whether to use absolute values of frequencies (default: false)
+- `σ²_threshold::Float64`: Minimum variance threshold for considering loci (default: 0.01)
+- `commutative::Bool`: Whether the transformation function is commutative (default: false)
+- `verbose::Bool`: Whether to display progress and diagnostics (default: false)
+
+# Returns
+- `Genomes`: A new Genomes object containing the transformed features
+
+# Details
+The function performs the following steps:
+1. Extracts allele frequencies and phenotypic data
+2. Applies the transformation function to all possible pairs of allele freuqencies (i.e., locus-allele combinations)
+3. Estimates effects using ordinary least squares
+4. Selects the most important transformed features
+5. Cleans numerical artifacts (values near 0 or 1)
+
+# Notes
+- Use named functions to ensure transformations can be reconstructed from `loci_alleles`
+- The function adds `ϵ` to frequencies to prevent numerical issues
+- Features with variance below `σ²_threshold` are skipped
+- The output contains at most `n_new_features_per_transformation` features
+
+# Examples
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
 julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
 
@@ -405,10 +478,38 @@ end
         transformations2::Vector{Function} = [mult, addnorm, raise],
         n_new_features_per_transformation::Int64 = 1_000,
         n_reps::Int64 = 3,
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Genomes
 
-Generate epistasis features.
+Generate epistasis features by applying various transformations to genomic data.
+
+# Arguments
+- `genomes::Genomes`: Input genomic data structure
+- `phenomes::Phenomes`: Input phenotypic data structure
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Indices of entries to include (default: all)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Indices of loci/alleles to include (default: all)
+- `transformations1::Vector{Function}`: Single-input transformation functions (default: [square, invoneplus, log10epsdivlog10eps])
+- `transformations2::Vector{Function}`: Two-input transformation functions (default: [mult, addnorm, raise])
+- `n_new_features_per_transformation::Int64`: Number of new features to generate per transformation (default: 1_000)
+- `n_reps::Int64`: Number of times to repeat the transformation process (default: 3)
+- `verbose::Bool`: Whether to display progress information (default:  false)
+
+# Returns
+- `Genomes`: Enhanced genomic data structure with additional epistasis features
+
+# Description
+This function generates epistasis features by applying two types of transformations:
+1. Single-input transformations (transformations1) applied to individual genomic features
+2. Two-input transformations (transformations2) applied to pairs of genomic features
+
+The transformations are repeated `n_reps` times to create a rich set of derived features.
+
+# Notes
+- Ensures all generated features are within [0,1] range
+- Maintains dimensional consistency of input/output structures
+- Automatically handles entry and loci/allele subsetting
+- Validates input data structures before processing
 
 # Example
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
@@ -568,9 +669,15 @@ end
 
 
 """
-    string2operations(x)
+    @string2operations(x)
 
-Macro to `Meta.parse` a string of endofunction formulae across allele frequencies.
+Convert a string containing an endofunction formulae for genomic features into a parsed Julia expressions.
+
+# Arguments
+- `x`: A string containing mathematical operations on allele frequencies
+
+# Returns
+- Parsed expression that can be evaluated in Julia
 """
 macro string2operations(x)
     Meta.parse(string("$(x)"))
@@ -580,12 +687,27 @@ end
     reconstitutefeatures(
         genomes::Genomes;
         feature_names::Vector{String},
-        transformations1::Vector{Function} = [square, invoneplus, log10epsdivlog10eps],
-        transformations2::Vector{Function} = [mult, addnorm, raise],
-        verbose::Bool = false,
+        verbose::Bool = false
     )::Genomes
 
-Reconstitute epistasis features given a genomes struct and names of the features which include the endofunction names used.
+Reconstruct epistasis features from a Genomes struct using feature names that encode the transformations applied.
+
+# Arguments
+- `genomes::Genomes`: Input genomic data structure
+- `feature_names::Vector{String}`: Vector of feature names containing encoded transformation information
+- `verbose::Bool`: Whether to show progress bar during reconstruction (default: false)
+
+# Returns
+- `Genomes`: A new Genomes struct with reconstructed epistasis features
+
+# Details
+The function parses the feature names to determine which transformations were applied and reconstructs
+the features by applying these transformations to the original genomic data. Feature names should 
+contain the transformation operations in a format that can be parsed and evaluated.
+
+# Throws
+- `ArgumentError`: If the input Genomes struct is corrupted (invalid dimensions)
+- `ErrorException`: If feature reconstruction fails
 
 # Example
 ```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
@@ -605,13 +727,7 @@ julia> genomes_epifeat == genomes_epifeat_reconstructed
 true
 ```
 """
-function reconstitutefeatures(
-    genomes::Genomes;
-    feature_names::Vector{String},
-    transformations1::Vector{Function} = [square, invoneplus, log10epsdivlog10eps],
-    transformations2::Vector{Function} = [mult, addnorm, raise],
-    verbose::Bool = false,
-)::Genomes
+function reconstitutefeatures(genomes::Genomes; feature_names::Vector{String}, verbose::Bool = false)::Genomes
     # genomes = GBCore.simulategenomes(l=1_000, verbose=false);
     # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
     # phenomes = extractphenomes(trials);
@@ -619,8 +735,6 @@ function reconstitutefeatures(
     # f2(x,y) = (x^2 + sqrt(y)) / 2;
     # genomes_transformed = transform2(f2, transform1(f1, genomes, phenomes), phenomes);
     # feature_names = genomes_transformed.loci_alleles; verbose = true;
-    # transformations1 = [square, invoneplus, log10epsdivlog10eps];
-    # transformations2 = [mult, addnorm, raise];
     # Check arguments
     if !checkdims(genomes)
         throw(ArgumentError("The Genomes struct is corrupted."))
