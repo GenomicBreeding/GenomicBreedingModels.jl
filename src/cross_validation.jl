@@ -12,8 +12,8 @@ Evaluate the predictive accuracy of a genomic prediction model on a validation d
 
 # Arguments
 - `fit::Fit`: A fitted genomic prediction model
-- `genomes::Genomes`: Genomic data containing marker information
-- `phenomes::Phenomes`: Phenotypic data containing trait measurements
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_validation::Vector{Int64}`: Indices of entries to use for validation
 - `replication::String`: Optional identifier for the validation replication
 - `fold::String`: Optional identifier for the cross-validation fold
@@ -89,8 +89,8 @@ Perform multi-threaded genomic prediction cross-validation using specified model
 
 # Arguments
 - `cvs::Vector{CV}`: Vector of cross-validation objects to be processed
-- `genomes::Genomes`: Genomic data containing genetic information
-- `phenomes::Phenomes`: Phenotypic data containing trait measurements
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `models_vector`: Vector of model functions to be used for prediction (e.g., [ridge, bayesa])
 - `verbose::Bool=true`: Whether to display progress bar during computation
 
@@ -220,10 +220,10 @@ Perform replicated k-fold cross-validation of genomic prediction model(s) across
 and entries, ignoring populations.
 
 # Arguments
-- `genomes::Genomes`: Object containing genomic marker data 
-- `phenomes::Phenomes`: Object containing phenotypic trait data
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `models::Vector{Function}`: Vector of genomic prediction model functions to evaluate
-- `n_replications::Int64`: Number of times to repeat k-fold cross-validation (default: 5)
+- `n_replications::Int64`: Number of times to repeat k-fold cross-validation randomising k-fold partitioning each time (default: 5)
 - `n_folds::Int64`: Number of cross-validation folds (default: 5) 
 - `seed::Int64`: Random seed for reproducibility (default: 42)
 - `verbose::Bool`: Whether to display progress information (default: true)
@@ -433,8 +433,8 @@ end
 Performs within-population replicated cross-validation of genomic prediction models across all available traits.
 
 # Arguments
-- `genomes::Genomes`: A Genomes struct containing genetic information and population assignments
-- `phenomes::Phenomes`: A Phenomes struct containing phenotypic data for traits
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `models::Vector{Function}=[ridge]`: Vector of genomic prediction model functions to evaluate
 - `n_replications::Int64=5`: Number of replications for cross-validation
 - `n_folds::Int64=5`: Number of folds for k-fold cross-validation
@@ -607,8 +607,8 @@ end
 Performs pairwise cross-validation between populations for genomic prediction models.
 
 # Arguments
-- `genomes::Genomes`: Genomic data containing marker information
-- `phenomes::Phenomes`: Phenotypic data containing trait measurements
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `models::Vector{Function}`: Vector of genomic prediction model functions to evaluate (default: [ridge])
 - `n_replications::Int64`: Number of replications (unused, maintained for API consistency)
 - `n_folds::Int64`: Number of folds (unused, maintained for API consistency)  
@@ -840,8 +840,8 @@ end
 Performs leave-one-population-out cross-validation for genomic prediction models across all available traits.
 
 # Arguments
-- `genomes::Genomes`: A Genomes struct containing genetic information and population assignments
-- `phenomes::Phenomes`: A Phenomes struct containing phenotypic data for traits
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `models::Vector{Function}`: Vector of model functions to evaluate (default: [ridge])
 - `n_replications::Int64`: Number of replications (not used in this implementation)
 - `n_folds::Int64`: Number of folds (not used in this implementation)

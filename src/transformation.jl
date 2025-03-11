@@ -484,8 +484,8 @@ end
 Generate epistasis features by applying various transformations to genomic data.
 
 # Arguments
-- `genomes::Genomes`: Input genomic data structure
-- `phenomes::Phenomes`: Input phenotypic data structure
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_trait::Int64`: Index of the trait to analyze (default: 1)
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Indices of entries to include (default: all)
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Indices of loci/alleles to include (default: all)
@@ -693,7 +693,7 @@ end
 Reconstruct epistasis features from a Genomes struct using feature names that encode the transformations applied.
 
 # Arguments
-- `genomes::Genomes`: Input genomic data structure
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
 - `feature_names::Vector{String}`: Vector of feature names containing encoded transformation information
 - `verbose::Bool`: Whether to show progress bar during reconstruction (default: false)
 

@@ -13,21 +13,21 @@
 Prepare data matrices and structures for genome-wide association studies (GWAS).
 
 # Arguments
-- `genomes`: Genomic data containing allele frequencies
-- `phenomes`: Phenotypic data containing trait measurements
-- `idx_entries`: Optional vector of indices to subset entries
-- `idx_loci_alleles`: Optional vector of indices to subset loci/alleles
-- `idx_trait`: Index of trait to analyze (default: 1)
-- `GRM_type`: Type of genetic relationship matrix, either "simple" or "ploidy-aware"
-- `standardise`: Whether to standardize the data matrices (default: true)
-- `verbose`: Whether to print progress information (default: false)
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
+- `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset entries (default: all entries)
+- `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset loci/alleles (default: all loci)
+- `idx_trait::Int64`: Index of the trait to analyze (default: 1)
+- `GRM_type::String`: Type of genetic relationship matrix to use ("simple" or "ploidy-aware") (default: "simple")
+- `standardise::Bool`: Whether to standardize the data matrices (default: true)
+- `verbose::Bool`: Whether to print progress information (default: false)
 
 # Returns
 A tuple containing:
-- `G`: Standardized allele frequency matrix
-- `y`: Standardized phenotype vector  
-- `GRM`: Genetic relationship matrix
-- `fit`: Initialized Fit struct for GWAS results
+- `G::Matrix{Float64}`: Standardized allele frequency matrix
+- `y::Vector{Float64}`: Standardized phenotype vector  
+- `GRM::Matrix{Float64}`: Genetic relationship matrix
+- `fit::Fit`: Initialized Fit struct for GWAS results
 
 # Details
 - Performs data validation and preprocessing for GWAS analysis
@@ -153,7 +153,7 @@ end
 Perform genome-wide association study (GWAS) using ordinary least squares (OLS) regression with population structure correction.
 
 # Arguments
-- `genomes::Genomes`: Genomic data structure containing genetic markers
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
 - `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset entries (default: all entries)
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset loci/alleles (default: all loci)
@@ -270,7 +270,7 @@ end
 Perform genome-wide association analysis using a linear mixed model (LMM) approach.
 
 # Arguments
-- `genomes::Genomes`: Genomic data structure containing genetic information
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
 - `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices for subsetting entries
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices for subsetting loci/alleles
@@ -494,7 +494,7 @@ end
 Performs genome-wide association analysis using restricted maximum likelihood estimation (REML).
 
 # Arguments
-- `genomes::Genomes`: Genomic data structure containing genetic markers
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
 - `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset entries (default: nothing)
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset loci/alleles (default: nothing)

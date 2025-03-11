@@ -9,7 +9,7 @@
 Generate a simple genetic relationship matrix (GRM) from genomic data.
 
 # Arguments
-- `genomes::Genomes`: A Genomes object containing genetic information
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries/individuals
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci/alleles
 - `verbose::Bool`: If true, displays a heatmap visualization of the GRM
@@ -89,7 +89,7 @@ Generate a ploidy-aware genetic relationship matrix (GRM) based on the methods d
 Bell et al. (2017) and VanRaden et al. (2008).
 
 # Arguments
-- `genomes::Genomes`: Input genomic data structure containing genetic information
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
 - `ploidy::Int64`: Number of chromosome copies in the organism (default: 2)
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries (default: nothing)
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci/alleles (default: nothing)

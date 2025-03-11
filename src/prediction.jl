@@ -11,8 +11,8 @@
 Extract data matrices and vectors from genomic and phenotypic data for statistical analyses.
 
 # Arguments
-- `genomes::Genomes`: Structure containing genomic data including allele frequencies and entry information
-- `phenomes::Phenomes`: Structure containing phenotypic data for the entries
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to select specific entries (default: all entries)
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to select specific loci-alleles (default: all loci-alleles)
 - `idx_trait::Int64`: Index of the trait to analyze (default: 1)
@@ -146,7 +146,7 @@ Calculate predicted phenotypes using a fitted genomic prediction model.
 
 # Arguments
 - `fit::Fit`: A fitted genomic prediction model containing coefficients and model information
-- `genomes::Genomes`: Genomic data containing allele frequencies and genetic information
+- `genomes::Genomes`: Genomic data containing allele frequencies
 - `idx_entries::Vector{Int64}`: Vector of indices specifying which entries to predict
 
 # Returns

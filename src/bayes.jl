@@ -6,7 +6,7 @@
 Perform Bayesian genomic prediction using the BGLR (Bayesian Generalized Linear Regression) R package.
 
 # Arguments
-- `G::Matrix{Float64}`: Marker matrix where rows represent individuals and columns represent markers
+- `G::Matrix{Float64}`: Marker matrix where rows represent individuals and columns represent locus-allele combinations
 - `y::Vector{Float64}`: Vector of phenotypic values
 - `model::String`: Bayesian model type to use. Options: "BayesA", "BayesB", or "BayesC". Default: "BayesA"
 - `response_type::String`: Type of response variable. Options: "gaussian" or "ordinal". Default: "gaussian"
@@ -122,8 +122,8 @@ Fit Bayesian genomic prediction models using the BGLR R package.
 
 # Arguments
 - `bglr_model::String`: Type of BGLR model to fit. Options: "BayesA", "BayesB", "BayesC"
-- `genomes::Genomes`: Genotype data in Genomes format
-- `phenomes::Phenomes`: Phenotype data in Phenomes format
+- `genomes::Genomes`: Genomic data structure containing allele frequencies
+- `phenomes::Phenomes`: Phenotypic data structure containing trait measurements
 - `idx_entries::Union{Nothing,Vector{Int64}}`: Optional indices to subset entries 
 - `idx_loci_alleles::Union{Nothing,Vector{Int64}}`: Optional indices to subset loci/alleles
 - `idx_trait::Int64`: Index of trait to analyze (default: 1)
