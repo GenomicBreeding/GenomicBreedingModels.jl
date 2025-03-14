@@ -19,14 +19,14 @@
 Fit a genomic prediction model using a multi-layer perceptron (MLP).
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
+```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
 julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
 
 julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit = mlp(genomes=genomes, phenomes=phenomes, n_epochs=10, use_cpu=true, verbose=false);
+julia> fit = Suppressor.@suppress mlp(genomes=genomes, phenomes=phenomes, n_epochs=10, use_cpu=true, verbose=false);
 
 julia> fit.metrics["cor"] < 0.5
 true
