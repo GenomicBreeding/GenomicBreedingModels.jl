@@ -20,6 +20,8 @@ using Optimization, Optim
 using MixedModels
 using MultivariateStats
 using Dates
+using Lux, Optimisers, Zygote
+# using LuxCUDA, AMDGPU, oneAPI # GPU support (Metal is for MacOS)
 
 include("metrics.jl")
 include("prediction.jl")
@@ -27,6 +29,7 @@ include("transformation.jl")
 include("grm.jl")
 include("gwas.jl")
 include("bayes.jl")
+include("dl.jl")
 include("linear.jl")
 include("non_linear.jl")
 include("cross_validation.jl")
@@ -42,6 +45,7 @@ export turing_bayesG, turing_bayesGs, turing_bayesGπ, turing_bayesGπs
 export turing_bayesL, turing_bayesLs, turing_bayesLπ, turing_bayesLπs
 export turing_bayesT, turing_bayesTπ
 export turing_bayesG_logit
+export mlp
 export ols, ridge, lasso, bayesa, bayesb, bayesc
 export validate, cvmultithread!, cvbulk
 export cvperpopulation, cvpairwisepopulation, cvleaveonepopulationout
