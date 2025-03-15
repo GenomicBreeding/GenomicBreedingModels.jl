@@ -34,8 +34,9 @@ UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 oneAPI = "8f75cd03-7ff8-4ecb-9b8f-daf728133b1b"
 
-[sources]
-GBCore = {rev = "main", url = "https://github.com/GenomicBreeding/GBCore.jl"}
+[sources.GBCore]
+rev = "main"
+url = "https://github.com/GenomicBreeding/GBCore.jl"
 
 [compat]
 AMDGPU = "1.2.3"
@@ -65,7 +66,7 @@ Suppressor = "0.2.8"
 Turing = "0.35.5, 0.36"
 TuringBenchmarking = "0.5.7"
 UnicodePlots = "3.7.1"
-Zygote = "0.6.75"
+Zygote = "0.6.75, 0.7"
 julia = "1.11"
 oneAPI = "2.0.2"
 
