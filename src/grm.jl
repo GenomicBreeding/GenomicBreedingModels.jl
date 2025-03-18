@@ -67,7 +67,7 @@ function grmsimple(
     ϵ = 1e-4
     while det(GRM) < eps(Float64)
         GRM[diagind(GRM)] .+= ϵ
-        ϵ .* 10
+        ϵ *= 10
     end
     # Output
     if verbose
@@ -152,7 +152,7 @@ function grmploidyaware(
     ϵ = 1e-4
     while det(GRM_VanRaden) < eps(Float64)
         GRM_VanRaden[diagind(GRM_VanRaden)] .+= ϵ
-        ϵ .* 10
+        ϵ *= 10
     end
     # Output
     if verbose
