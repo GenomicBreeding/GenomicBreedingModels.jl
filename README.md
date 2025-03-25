@@ -17,6 +17,36 @@ using Pkg
 Pkg.add("https://github.com/GenomicBreeding/GBModels.jl")
 ```
 
+If you wish to use neural network models, please install [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) on a GPU node. The install [LuxCUDA.jl](https://github.com/LuxDL/LuxCUDA.jl) for an NVIDIA GPU or [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl) for a node with an AMD GPU:
+
+Log into a GPU node, e.g.:
+
+```shell
+sinteractive --job-name="CUDA_install" --account="account_name" --partition="gpu" --gres=gpu:1
+```
+
+Install CUDA.jl:
+
+```julia
+using Pkg
+Pkg.add("CUDA")
+using CUDA
+CUDA.set_runtime_version!(v"12.8") # modify to match you CUDA version: see shell> nvidia-smi
+```
+
+Then restart Julia to download the CUDA_runtime:
+
+```julia
+using CUDA
+if CUDA.functional(true)
+    Pkg.add("LuxCUDA")
+    using LuxCUDA
+else
+    Pkg.add("AMDGPU")
+    using AMDGPU
+end
+```
+
 ## Dev stuff:
 
 ### REPL prelude

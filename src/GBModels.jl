@@ -21,6 +21,7 @@ using MixedModels
 using MultivariateStats
 using Dates
 using Lux, Optimisers, Zygote
+using LuxCUDA
 # using LuxCUDA, AMDGPU, oneAPI # GPU support (Metal is for MacOS)
 
 include("metrics.jl")
