@@ -5,8 +5,8 @@ try
 catch
     nothing
 end
-using GBModels
-using GBCore
+using GenomicBreedingModels
+using GenomicBreedingCore
 using LinearAlgebra
 using StatsBase
 using Distributions

@@ -3,7 +3,7 @@
     square(x) = x^2
 
 This function takes a number and squares it.
-A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+A member of the set of endofunctions defined in GenomicBreedingModels.jl for building non-linear genomic prediction models.
 Both input and ouput range between zero and one.
 """
 square(x) = x^2
@@ -12,7 +12,7 @@ square(x) = x^2
     invoneplus(x) = 1 / (1 + x)
 
 This function takes a number, adds one and inverts it.
-A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+A member of the set of endofunctions defined in GenomicBreedingModels.jl for building non-linear genomic prediction models.
 Both input and ouput range between zero and one.
 """
 invoneplus(x) = 1 / (1 + x)
@@ -21,7 +21,7 @@ invoneplus(x) = 1 / (1 + x)
     log10epsdivlog10eps(x) = (log10(abs(x) + eps(Float64))) / log10(eps(Float64))
 
 This function takes a number, adds a very tiny value, takes the log10, and divide it by the log10 of the same very tiny value.
-A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+A member of the set of endofunctions defined in GenomicBreedingModels.jl for building non-linear genomic prediction models.
 Both input and ouput range between zero and one.
 """
 log10epsdivlog10eps(x) = (log10(x + eps(Float64))) / log10(eps(Float64))
@@ -30,7 +30,7 @@ log10epsdivlog10eps(x) = (log10(x + eps(Float64))) / log10(eps(Float64))
     mult(x, y) = x * y
 
 This function takes two numbers and multiplies them together.
-A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+A member of the set of endofunctions defined in GenomicBreedingModels.jl for building non-linear genomic prediction models.
 Inputs and ouput range between zero and one.
 """
 mult(x, y) = x * y
@@ -39,7 +39,7 @@ mult(x, y) = x * y
     addnorm(x, y) = (x + y) / 2.0
 
 This function takes two numbers and finds their arithmetic mean.
-A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+A member of the set of endofunctions defined in GenomicBreedingModels.jl for building non-linear genomic prediction models.
 Inputs and ouput range between zero and one.
 """
 addnorm(x, y) = (x + y) / 2.0
@@ -48,7 +48,7 @@ addnorm(x, y) = (x + y) / 2.0
     raise(x, y) = x^y
 
 This function raises the first value to the power of the second value.
-A member of the set of endofunctions defined in GBModels.jl for building non-linear genomic prediction models.
+A member of the set of endofunctions defined in GenomicBreedingModels.jl for building non-linear genomic prediction models.
 Inputs and ouput range between zero and one.
 """
 raise(x, y) = x^y
@@ -103,10 +103,10 @@ The function performs the following steps:
 - The output contains at most `n_new_features_per_transformation` features
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
-julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase, DataFrames)
+julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -141,8 +141,8 @@ function transform1(
     verbose::Bool = false,
 )::Genomes
     # f=sqrt
-    # genomes = GBCore.simulategenomes()
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # genomes = GenomicBreedingCore.simulategenomes()
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing; 
     # n_new_features_per_transformation = 1_000; ϵ = eps(Float64); use_abs = true; σ²_threshold = 0.01; verbose = true;
     # Extract the allele frequencies matrix, etc, while checking the arguments
@@ -288,10 +288,10 @@ The function performs the following steps:
 - The output contains at most `n_new_features_per_transformation` features
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
-julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase, DataFrames)
+julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -331,8 +331,8 @@ function transform2(
     verbose::Bool = false,
 )::Genomes
     # f=(x,y) -> (x^2 + sqrt(y)) / 2;
-    # genomes = GBCore.simulategenomes(l=1_000)
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # genomes = GenomicBreedingCore.simulategenomes(l=1_000)
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing; 
     # n_new_features_per_transformation = 1_000; ϵ = eps(Float64); use_abs = true; σ²_threshold = 0.01; commutative = false; verbose = true;
     # Extract the allele frequencies matrix, etc, while checking the arguments
@@ -512,10 +512,10 @@ The transformations are repeated `n_reps` times to create a rich set of derived 
 - Validates input data structures before processing
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
-julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase, DataFrames)
+julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -525,9 +525,9 @@ julia> cvs, notes = cvbulk(genomes=genomes_plus_features, phenomes=phenomes, mod
 
 julia> cvs_no_epi, notes_no_epi = cvbulk(genomes=genomes, phenomes=phenomes, models=[ridge, lasso, bayesa], verbose=false);
 
-julia> df_across, df_per_entry = GBCore.tabularise(cvs);
+julia> df_across, df_per_entry = GenomicBreedingCore.tabularise(cvs);
 
-julia> df_across_no_epi, df_per_entry_no_epi = GBCore.tabularise(cvs_no_epi);
+julia> df_across_no_epi, df_per_entry_no_epi = GenomicBreedingCore.tabularise(cvs_no_epi);
 
 julia> df_summary = combine(groupby(df_across, [:trait, :model]), [[:cor] => mean, [:cor] => std]);
 
@@ -549,8 +549,8 @@ function epistasisfeatures(
     n_reps::Int64 = 3,
     verbose::Bool = false,
 )::Genomes
-    # genomes = GBCore.simulategenomes(l=1_000)
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # genomes = GenomicBreedingCore.simulategenomes(l=1_000)
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing;
     # transformations1 = [square, invoneplus, log10epsdivlog10eps]
     # transformations2 = [mult, addnorm, raise]
@@ -710,10 +710,10 @@ contain the transformation operations in a format that can be parsed and evaluat
 - `ErrorException`: If feature reconstruction fails
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, StatsBase, DataFrames)
-julia> genomes = GBCore.simulategenomes(l=1_000, verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase, DataFrames)
+julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -728,8 +728,8 @@ true
 ```
 """
 function reconstitutefeatures(genomes::Genomes; feature_names::Vector{String}, verbose::Bool = false)::Genomes
-    # genomes = GBCore.simulategenomes(l=1_000, verbose=false);
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+    # genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
     # phenomes = extractphenomes(trials);
     # f1(x) = x^2;
     # f2(x,y) = (x^2 + sqrt(y)) / 2;

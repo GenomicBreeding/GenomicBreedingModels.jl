@@ -29,8 +29,8 @@ The function computes a genetic relationship matrix by:
 - The matrix dimensions will be n×n where n is the number of entries/individuals
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, LinearAlgebra)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
 julia> GRM = grmsimple(genomes);
 
@@ -47,7 +47,7 @@ function grmsimple(
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     verbose::Bool = false,
 )::Matrix{Float64}
-    # genomes = GBCore.simulategenomes(); idx_entries = nothing; idx_loci_alleles = nothing; verbose = true;
+    # genomes = GenomicBreedingCore.simulategenomes(); idx_entries = nothing; idx_loci_alleles = nothing; verbose = true;
     # Check arguments while extracting the allele frequencies but first create a dummy phenomes struct
     phenomes_dummy = Phenomes(n = length(genomes.entries), t = 1)
     phenomes_dummy.entries = genomes.entries
@@ -109,8 +109,8 @@ The function implements the following steps:
 The diagonal elements may be slightly inflated to ensure matrix invertibility for downstream analyses.
 
 # Example
-```jldoctest; setup = :(using GBCore, GBModels, LinearAlgebra)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, LinearAlgebra)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
 julia> GRM_VanRaden = grmploidyaware(genomes);
 
@@ -128,7 +128,7 @@ function grmploidyaware(
     idx_loci_alleles::Union{Nothing,Vector{Int64}} = nothing,
     verbose::Bool = false,
 )::Matrix{Float64}
-    # genomes = GBCore.simulategenomes(); ploidy = 2; idx_entries = nothing; idx_loci_alleles = nothing; verbose = true;
+    # genomes = GenomicBreedingCore.simulategenomes(); ploidy = 2; idx_entries = nothing; idx_loci_alleles = nothing; verbose = true;
     # Check arguments while extracting the allele frequencies but first create a dummy phenomes struct
     phenomes_dummy = Phenomes(n = length(genomes.entries), t = 1)
     phenomes_dummy.entries = genomes.entries

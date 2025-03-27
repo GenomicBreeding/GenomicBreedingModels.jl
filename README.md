@@ -1,8 +1,8 @@
-# GBModels
+# GenomicBreedingModels
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://GenomicBreeding.github.io/GBModels.jl/stable/)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://GenomicBreeding.github.io/GBModels.jl/dev/)
-[![Build Status](https://github.com/GenomicBreeding/GBModels.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/GenomicBreeding/GBModels.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://GenomicBreeding.github.io/GenomicBreedingModels.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://GenomicBreeding.github.io/GenomicBreedingModels.jl/dev/)
+[![Build Status](https://github.com/GenomicBreeding/GenomicBreedingModels.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/GenomicBreeding/GenomicBreedingModels.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 Genomic prediction models for GenomicBreeding.jl.
 
@@ -10,11 +10,11 @@ Genomic prediction models for GenomicBreeding.jl.
 
 This uses the [R package BGLR](https://github.com/gdlc/BGLR-R). We therefore need to install R and the BGLR package first. To help with this, Conda maybe used by loading the environment file: [`misc/GenomicBreeding_conda.yml`](misc/GenomicBreeding_conda.yml).
 
-Then install GBModels.jl:
+Then install GenomicBreedingModels.jl:
 
 ```julia
 using Pkg
-Pkg.add("https://github.com/GenomicBreeding/GBModels.jl")
+Pkg.add("https://github.com/GenomicBreeding/GenomicBreedingModels.jl")
 ```
 
 If you wish to use neural network models, please install [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) on a GPU node. The install [LuxCUDA.jl](https://github.com/LuxDL/LuxCUDA.jl) for an NVIDIA GPU or [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl) for a node with an AMD GPU:
