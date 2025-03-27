@@ -73,7 +73,8 @@ function validate(
     populations = phenomes.populations[idx_validation[idx]]
     entries = phenomes.entries[idx_validation[idx]]
     y_true::Vector{Float64} = ϕ[idx]
-    y_pred::Vector{Float64} = GenomicBreedingModels.predict(fit = fit, genomes = genomes, idx_entries = idx_validation[idx])
+    y_pred::Vector{Float64} =
+        GenomicBreedingModels.predict(fit = fit, genomes = genomes, idx_entries = idx_validation[idx])
     performance = metrics(y_true, y_pred)
     cv = CV(replication, fold, fit, populations, entries, y_true, y_pred, performance)
     if !checkdims(cv)
