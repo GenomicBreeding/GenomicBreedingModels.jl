@@ -886,7 +886,7 @@ end
 
 Fit a Bayesian linear regression models via Turing.jl
 
-## Examples
+# Examples
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, Suppressor)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 

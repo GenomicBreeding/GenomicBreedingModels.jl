@@ -114,18 +114,20 @@ function gwasprep(;
     G = G[:, idx_cols]
     loci_alleles = loci_alleles[idx_cols]
     # Extract the GRM to correct for population structure
-    GRM = if GRM_type == "ploidy-aware"
+    K = if GRM_type == "ploidy-aware"
         # Infer ploidy level
         ploidy = Int(round(1 / minimum(G[G.!=0.0])))
-        grmploidyaware(genomes, ploidy = ploidy)
+        grm = grmploidyaware(genomes, ploidy = ploidy)
+        grm.genomic_relationship_matrix
     else
         # Simple GRM
-        grmsimple(genomes)
+        grm = grmsimple(genomes)
+        grm.genomic_relationship_matrix
     end
     if standardise
         y = (y .- mean(y)) ./ std(y)
         G = (G .- mean(G, dims = 1)) ./ v[idx_cols]'
-        GRM = (GRM .- mean(GRM, dims = 1)) ./ std(GRM, dims = 1)
+        K = (K .- mean(K, dims = 1)) ./ std(K, dims = 1)
     end
     # Instantiate output Fit struct
     n, l = size(G)
@@ -136,7 +138,7 @@ function gwasprep(;
     fit.entries = entries
     fit.populations = populations
     fit.metrics = Dict("" => 0.0)
-    (G, y, GRM, fit)
+    (G, y, K, fit)
 end
 
 """
