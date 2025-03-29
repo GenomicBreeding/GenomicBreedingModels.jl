@@ -4,7 +4,7 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://GenomicBreeding.github.io/GenomicBreedingModels.jl/dev/)
 [![Build Status](https://github.com/GenomicBreeding/GenomicBreedingModels.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/GenomicBreeding/GenomicBreedingModels.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
-Genomic prediction models for GenomicBreeding.jl.
+Genomic prediction and population genetics models (including multi-generation breeding simulations) for GenomicBreeding.jl.
 
 ## Installation
 
