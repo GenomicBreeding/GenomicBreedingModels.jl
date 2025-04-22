@@ -7,7 +7,7 @@ using Distributions
 using Optimization
 using Random
 using Distances
-using UnicodePlots, Plots
+using UnicodePlots
 using GLMNet
 using Turing
 using BenchmarkTools, TuringBenchmarking
