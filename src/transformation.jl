@@ -557,13 +557,13 @@ function epistasisfeatures(
     # n_new_features_per_transformation = 100; n_reps = 3; verbose = true
     # Check arguments
     if !checkdims(genomes) && !checkdims(phenomes)
-        throw(ArgumentError("The Genomes and Phenomes structs are corrupted."))
+        throw(ArgumentError("The Genomes and Phenomes structs are corrupted ☹."))
     end
     if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
+        throw(ArgumentError("The Genomes struct is corrupted ☹."))
     end
     if !checkdims(phenomes)
-        throw(ArgumentError("The Phenomes struct is corrupted."))
+        throw(ArgumentError("The Phenomes struct is corrupted ☹."))
     end
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
@@ -737,7 +737,7 @@ function reconstitutefeatures(genomes::Genomes; feature_names::Vector{String}, v
     # feature_names = genomes_transformed.loci_alleles; verbose = true;
     # Check arguments
     if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
+        throw(ArgumentError("The Genomes struct is corrupted ☹."))
     end
     out = Genomes(n = length(genomes.entries), p = length(feature_names))
     out.entries = genomes.entries

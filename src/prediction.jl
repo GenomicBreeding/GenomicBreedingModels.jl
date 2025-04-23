@@ -65,13 +65,13 @@ function extractxyetc(
     # idx_trait = 1; add_intercept = true
     # Check arguments
     if !checkdims(genomes) && !checkdims(phenomes)
-        throw(ArgumentError("The Genomes and Phenomes structs are corrupted."))
+        throw(ArgumentError("The Genomes and Phenomes structs are corrupted ☹."))
     end
     if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
+        throw(ArgumentError("The Genomes struct is corrupted ☹."))
     end
     if !checkdims(phenomes)
-        throw(ArgumentError("The Phenomes struct is corrupted."))
+        throw(ArgumentError("The Phenomes struct is corrupted ☹."))
     end
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
@@ -194,10 +194,10 @@ function predict(; fit::Fit, genomes::Genomes, idx_entries::Vector{Int64})::Vect
     # idx_entries = collect(201:300)
     # Check arguments
     if !checkdims(fit)
-        throw(ArgumentError("The Fit struct is corrupted."))
+        throw(ArgumentError("The Fit struct is corrupted ☹."))
     end
     if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
+        throw(ArgumentError("The Genomes struct is corrupted ☹."))
     end
     if (minimum(idx_entries) < 1) .|| maximum(idx_entries) > length(genomes.entries)
         throw(

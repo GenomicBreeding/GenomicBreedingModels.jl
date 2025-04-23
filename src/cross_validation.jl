@@ -78,7 +78,7 @@ function validate(
     performance = metrics(y_true, y_pred)
     cv = CV(replication, fold, fit, populations, entries, y_true, y_pred, performance)
     if !checkdims(cv)
-        throw(ArgumentError("CV struct is corrupted."))
+        throw(ArgumentError("CV struct is corrupted ☹."))
     end
     cv
 end
@@ -280,13 +280,13 @@ function cvbulk(;
     # n_folds = 2; n_replications = 2; seed = 42; verbose = true
     # Check arguments
     if !checkdims(genomes) && !checkdims(phenomes)
-        throw(ArgumentError("The Genomes and Phenomes structs are corrupted."))
+        throw(ArgumentError("The Genomes and Phenomes structs are corrupted ☹."))
     end
     if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
+        throw(ArgumentError("The Genomes struct is corrupted ☹."))
     end
     if !checkdims(phenomes)
-        throw(ArgumentError("The Phenomes struct is corrupted."))
+        throw(ArgumentError("The Phenomes struct is corrupted ☹."))
     end
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
@@ -514,13 +514,13 @@ function cvperpopulation(;
     # n_folds = 2; n_replications = 2; seed = 42; verbose = true
     # Check arguments
     if !checkdims(genomes) && !checkdims(phenomes)
-        throw(ArgumentError("The Genomes and Phenomes structs are corrupted."))
+        throw(ArgumentError("The Genomes and Phenomes structs are corrupted ☹."))
     end
     if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
+        throw(ArgumentError("The Genomes struct is corrupted ☹."))
     end
     if !checkdims(phenomes)
-        throw(ArgumentError("The Phenomes struct is corrupted."))
+        throw(ArgumentError("The Phenomes struct is corrupted ☹."))
     end
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
@@ -672,13 +672,13 @@ function cvpairwisepopulation(;
     # n_folds = 2; n_replications = 2; seed = 42; verbose = true
     # Check arguments
     if !checkdims(genomes) && !checkdims(phenomes)
-        throw(ArgumentError("The Genomes and Phenomes structs are corrupted."))
+        throw(ArgumentError("The Genomes and Phenomes structs are corrupted ☹."))
     end
     if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
+        throw(ArgumentError("The Genomes struct is corrupted ☹."))
     end
     if !checkdims(phenomes)
-        throw(ArgumentError("The Phenomes struct is corrupted."))
+        throw(ArgumentError("The Phenomes struct is corrupted ☹."))
     end
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
@@ -914,13 +914,13 @@ function cvleaveonepopulationout(;
     # n_folds = 2; n_replications = 2; seed = 42; verbose = true
     # Check arguments
     if !checkdims(genomes) && !checkdims(phenomes)
-        throw(ArgumentError("The Genomes and Phenomes structs are corrupted."))
+        throw(ArgumentError("The Genomes and Phenomes structs are corrupted ☹."))
     end
     if !checkdims(genomes)
-        throw(ArgumentError("The Genomes struct is corrupted."))
+        throw(ArgumentError("The Genomes struct is corrupted ☹."))
     end
     if !checkdims(phenomes)
-        throw(ArgumentError("The Phenomes struct is corrupted."))
+        throw(ArgumentError("The Phenomes struct is corrupted ☹."))
     end
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
