@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = GBModels
+CurrentModule = GenomicBreedingModels
 ```
 
-# GBModels
+# GenomicBreedingModels
 
-Documentation for [GBModels](https://github.com/GenomicBreeding/GBModels.jl).
+Documentation for [GenomicBreedingModels](https://github.com/GenomicBreeding/GenomicBreedingModels.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [GBModels]
+Modules = [GenomicBreedingModels]
 ```

@@ -1,18 +1,18 @@
-using GBModels
+using GenomicBreedingModels
 using Documenter
 
-DocMeta.setdocmeta!(GBModels, :DocTestSetup, :(using GBModels); recursive = true)
+DocMeta.setdocmeta!(GenomicBreedingModels, :DocTestSetup, :(using GenomicBreedingModels); recursive = true)
 
 makedocs(;
-    modules = [GBModels],
+    modules = [GenomicBreedingModels],
     authors = "jeffersonparil@gmail.com",
-    sitename = "GBModels.jl",
+    sitename = "GenomicBreedingModels.jl",
     format = Documenter.HTML(;
-        canonical = "https://GenomicBreeding.github.io/GBModels.jl",
+        canonical = "https://GenomicBreeding.github.io/GenomicBreedingModels.jl",
         edit_link = "main",
         assets = String[],
     ),
     pages = ["Home" => "index.md"],
 )
 
-deploydocs(; repo = "github.com/GenomicBreeding/GBModels.jl", devbranch = "main")
+deploydocs(; repo = "github.com/GenomicBreeding/GenomicBreedingModels.jl", devbranch = "main")

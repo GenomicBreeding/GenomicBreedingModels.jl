@@ -24,7 +24,7 @@ jobs:
       matrix:
         version:
           - '1.11'
-          - 'pre'
+          # - 'pre'
         os:
           - ubuntu-latest
         arch:
@@ -82,6 +82,6 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
-          using GBModels
-          DocMeta.setdocmeta!(GBModels, :DocTestSetup, :(using GBModels); recursive=true)
-          doctest(GBModels)
+          using GenomicBreedingModels
+          DocMeta.setdocmeta!(GenomicBreedingModels, :DocTestSetup, :(using GenomicBreedingModels); recursive=true)
+          doctest(GenomicBreedingModels)

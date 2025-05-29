@@ -5,15 +5,15 @@ try
 catch
     nothing
 end
-using GBModels
-using GBCore
+using GenomicBreedingModels
+using GenomicBreedingCore
 using LinearAlgebra
 using StatsBase
 using Distributions
 using Optimization
 using Random
 using Distances
-using UnicodePlots, Plots
+using UnicodePlots
 using GLMNet
 using Turing
 using BenchmarkTools, TuringBenchmarking

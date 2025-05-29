@@ -35,10 +35,10 @@ Performs ordinary least squares regression on genomic data to predict phenotypic
 The model includes an intercept term and estimates effects for each locus-allele combination.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -59,8 +59,8 @@ function ols(;
     idx_trait::Int64 = 1,
     verbose::Bool = false,
 )::Fit
-    # genomes = GBCore.simulategenomes()
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # genomes = GenomicBreedingCore.simulategenomes()
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing
     # idx_trait = 1; verbose = true
@@ -143,10 +143,10 @@ multicollinearity in the predictors.
 - Includes an intercept term in the model
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -167,8 +167,8 @@ function ridge(;
     idx_trait::Int64 = 1,
     verbose::Bool = false,
 )::Fit
-    # genomes = GBCore.simulategenomes()
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # genomes = GenomicBreedingCore.simulategenomes()
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing
     # idx_trait = 1; verbose = true
@@ -283,10 +283,10 @@ the coefficients.
 - The model includes an intercept term
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -307,8 +307,8 @@ function lasso(;
     idx_trait::Int64 = 1,
     verbose::Bool = false,
 )::Fit
-    # genomes = GBCore.simulategenomes()
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # genomes = GenomicBreedingCore.simulategenomes()
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing
     # idx_trait = 1; verbose = true
@@ -421,10 +421,10 @@ a scaled-t distribution, allowing for different variances for each marker effect
 - The burn-in period should be adjusted based on convergence diagnostics
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -502,10 +502,10 @@ a mixture distribution where some markers have zero effect and others follow a s
   + `metrics`: Dictionary of performance metrics
   
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -583,10 +583,10 @@ a mixture distribution with a point mass at zero and a normal distribution.
   + `metrics`: Dictionary of performance metrics
   
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 

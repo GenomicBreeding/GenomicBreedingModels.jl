@@ -34,8 +34,8 @@ function bglr(;
     n_burnin::Int64 = 500,
     verbose::Bool = false,
 )::Vector{Float64}
-    # genomes = GBCore.simulategenomes(n=1_000, l=1_750, verbose=true)
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=true)
+    # genomes = GenomicBreedingCore.simulategenomes(n=1_000, l=1_750, verbose=true)
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=true)
     # phenomes = extractphenomes(trials)
     # G::Matrix{Float64} = genomes.allele_frequencies
     # y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -145,10 +145,10 @@ This function provides a Julia interface to the BGLR R package for Bayesian geno
 It uses temporary files to interface with R and automatically cleans up afterward.
 
 # Examples
-```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, Suppressor)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -171,8 +171,8 @@ function bayesian(
     verbose::Bool = false,
 )::Fit
     # bglr_model = "BayesA"
-    # genomes = GBCore.simulategenomes()
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # genomes = GenomicBreedingCore.simulategenomes()
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; response_type::String = ["gaussian", "ordinal"][1];
     # idx_entries = nothing; idx_loci_alleles = nothing
     # n_burnin = 500; n_iter = 1_500; verbose = true;
@@ -234,8 +234,8 @@ Turing specification of Bayesian linear regression using a Gaussian prior with c
 # Example usage
 ```julia
 # Benchmarking
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -249,8 +249,8 @@ benchmarks = TuringBenchmarking.benchmark_model(
 )
 
 # Test more loci
-genomes = GBCore.simulategenomes(n=10, l=10_000)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=10_000)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 G::Matrix{Float64} = genomes.allele_frequencies
 y::Vector{Float64} = phenomes.phenotypes[:, 1]
@@ -297,8 +297,8 @@ Turing specification of Bayesian linear regression using a Gaussian prior with v
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -397,8 +397,8 @@ Turing specification of Bayesian linear regression using a Gaussian prior with a
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -439,8 +439,8 @@ Turing specification of Bayesian linear regression using a Gaussian prior with a
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -485,8 +485,8 @@ Turing specification of Bayesian linear regression using a Laplacian prior with 
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -527,8 +527,8 @@ Turing specification of Bayesian linear regression using a Laplacian prior with 
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -630,8 +630,8 @@ Turing specification of Bayesian linear regression using a Laplacian prior with 
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -672,8 +672,8 @@ Turing specification of Bayesian linear regression using a Laplacian prior with 
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -720,8 +720,8 @@ Turing specification of Bayesian linear regression using a T-distribution
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -818,8 +818,8 @@ Turing specification of Bayesian linear regression using a T-distribution with a
 # Example usage
 ```julia
 # Simulate data
-genomes = GBCore.simulategenomes(n=10, l=100)
-trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
+genomes = GenomicBreedingCore.simulategenomes(n=10, l=100)
+trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.9 0.01 0.00;])
 phenomes = extractphenomes(trials)
 # Extract genotype and phenotype data
 G::Matrix{Float64} = genomes.allele_frequencies
@@ -886,11 +886,11 @@ end
 
 Fit a Bayesian linear regression models via Turing.jl
 
-## Examples
-```jldoctest; setup = :(using GBCore, GBModels, Suppressor)
-julia> genomes = GBCore.simulategenomes(verbose=false);
+# Examples
+```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, Suppressor)
+julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -921,8 +921,8 @@ function bayesian(
     n_iter::Int64 = 1_500,
     verbose::Bool = false,
 )::Fit
-    # genomes = GBCore.simulategenomes()
-    # trials, _ = GBCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # genomes = GenomicBreedingCore.simulategenomes()
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1;
     # idx_entries = nothing; idx_loci_alleles = nothing
     # sampler = ["NUTS", "HMC", "HMCDA", "MH", "PG"][1]; sampling_method = 1; seed = 123; n_burnin = 500; n_iter = 1_500; verbose = true;
