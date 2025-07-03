@@ -94,7 +94,7 @@ function mlp(;
     seed::Int64 = 123,
     verbose::Bool = false,
 )::Fit
-    # genomes = GenomicBreedingCore.simulategenomes(n=500, l=1_000, n_populations=3, verbose=true)
+    # genomes = GenomicBreedingCore.simulategenomes(n=500, l=10_000, n_populations=3, verbose=true)
     # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; add_intercept = true
@@ -175,11 +175,18 @@ function mlp(;
     train_state = Lux.Training.TrainState(model, ps, st, Optimisers.Adam(0.0001f0))
     ### Train
     Lux.trainmode(st) # not really required as the default is training mode, this is more for debugging with metrics calculations below
+    if verbose
+        pb = ProgressMeter.Progress(n_epochs, desc="Training progress")
+    end
     for iter = 1:n_epochs
         _, loss, _, train_state = Lux.Training.single_train_step!(AutoZygote(), MSELoss(), (x, y), train_state)
         if verbose
-            println("Iteration: $iter\tLoss: $loss")
+            # println("Iteration: $iter\tLoss: $loss")
+            ProgressMeter.next!(pb)
         end
+    end
+    if verbose
+        ProgressMeter.finish!(pb)
     end
     # Metrics
     Lux.testmode(st)
