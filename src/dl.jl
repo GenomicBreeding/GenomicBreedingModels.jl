@@ -176,7 +176,7 @@ function mlp(;
     ### Train
     Lux.trainmode(st) # not really required as the default is training mode, this is more for debugging with metrics calculations below
     if verbose
-        pb = ProgressMeter.Progress(n_epochs, desc="Training progress")
+        pb = ProgressMeter.Progress(n_epochs, desc = "Training progress")
     end
     for iter = 1:n_epochs
         _, loss, _, train_state = Lux.Training.single_train_step!(AutoZygote(), MSELoss(), (x, y), train_state)
