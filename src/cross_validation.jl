@@ -492,10 +492,10 @@ true
 julia> summary_across, summary_per_entry = summarise(cvs);
 
 julia> size(summary_across)
-(6, 8)
+(6, 11)
 
 julia> size(summary_per_entry)
-(200, 8)
+(200, 9)
 ```
 """
 function cvperpopulation(;
