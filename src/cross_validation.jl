@@ -359,7 +359,7 @@ function cvbulk(;
             for j = 1:n_folds
                 # j = 1
                 # Check the phenotypes early before we partition them into threads. Much more efficient eh!
-                ϕ = phenomes.phenotypes[:, phenomes.traits.==trait][:, 1]
+                ϕ = phenomes.phenotypes[:, phenomes.traits .== trait][:, 1]
                 idx_training = findall((idx_permutation .!= j) .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ))
                 idx_validation = findall((idx_permutation .== j) .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ))
                 if (length(idx_training) < 2 || length(idx_validation) < 1)
@@ -737,7 +737,7 @@ function cvpairwisepopulation(;
                     continue
                 end
                 # Check the phenotypes early before we partition them into threads. Much more efficient eh!
-                ϕ = phenomes.phenotypes[:, phenomes.traits.==trait][:, 1]
+                ϕ = phenomes.phenotypes[:, phenomes.traits .== trait][:, 1]
                 idx_training = findall(
                     (phenomes.populations .== training_population) .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ),
                 )
@@ -973,14 +973,14 @@ function cvleaveonepopulationout(;
         for validation_population in populations
             # validation_population = populations[1]
             # Check the phenotypes early before we partition them into threads. Much more efficient eh!
-            ϕ = phenomes.phenotypes[:, phenomes.traits.==trait][:, 1]
+            ϕ = phenomes.phenotypes[:, phenomes.traits .== trait][:, 1]
             idx_training = findall(
                 phenomes.populations .!= validation_population .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ),
             )
             idx_validation = findall(
                 phenomes.populations .== validation_population .&& .!ismissing.(ϕ) .&& .!isnan.(ϕ) .&& .!isinf.(ϕ),
             )
-            training_population = join(populations[populations.!=validation_population], ";")
+            training_population = join(populations[populations .!= validation_population], ";")
             if (length(idx_training) < 2 || length(idx_validation) < 1)
                 push!(
                     notes,

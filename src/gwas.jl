@@ -116,7 +116,7 @@ function gwasprep(;
     # Extract the GRM to correct for population structure
     K = if GRM_type == "ploidy-aware"
         # Infer ploidy level
-        ploidy = Int(round(1 / minimum(G[G.!=0.0])))
+        ploidy = Int(round(1 / minimum(G[G .!= 0.0])))
         grm = grmploidyaware(genomes, ploidy = ploidy)
         grm.genomic_relationship_matrix
     else
@@ -587,7 +587,7 @@ function gwasreml(;
         # Define the optimisation problem where we set the limits of the error and genotype variances to be between 0 and 1 as all data are standard normalised
         prob = OptimizationProblem(optimreml, θ_init, (y, X, GRM), lb = [eps(Float64), eps(Float64)], ub = [1.0, 1.0])
         # Optimise, i.e. REML estimation (uses the BFGS optimiser with a larger (2x) than default absolute tolerance in the gradient (Default g_tol=1e-8) for faster convergence)
-        sol = solve(prob, Optim.BFGS(), g_tol = 1e-4)
+        sol = solve(prob, Optimization.LBFGS(), g_tol = 1e-4)
         R = sol.u[1] * I
         D = sol.u[2] * GRM
         # Since Z = I, V = (Z * D * Z') + R simply becomes:

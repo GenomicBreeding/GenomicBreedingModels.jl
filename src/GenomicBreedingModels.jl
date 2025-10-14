@@ -9,14 +9,14 @@ using Random
 using Distances
 using UnicodePlots
 using GLMNet
-using Turing
-using BenchmarkTools, TuringBenchmarking
-using ReverseDiff
+# using Turing
+# using BenchmarkTools, TuringBenchmarking
+# using ReverseDiff
 using DataFrames
 using Suppressor
 using ProgressMeter
 using DataFrames
-using Optimization, Optim
+using Optimization
 using MixedModels
 using MultivariateStats
 using Dates
@@ -40,10 +40,10 @@ export gwasprep, gwasols, gwaslmm, loglikreml, gwasreml
 export square, invoneplus, log10epsdivlog10eps, mult, addnorm, raise
 export transform1, transform2, epistasisfeatures, @string2operations, reconstitutefeatures
 export bglr, bayesian
-export turing_bayesG, turing_bayesGs, turing_bayesGπ, turing_bayesGπs
-export turing_bayesL, turing_bayesLs, turing_bayesLπ, turing_bayesLπs
-export turing_bayesT, turing_bayesTπ
-export turing_bayesG_logit
+# export turing_bayesG, turing_bayesGs, turing_bayesGπ, turing_bayesGπs
+# export turing_bayesL, turing_bayesLs, turing_bayesLπ, turing_bayesLπs
+# export turing_bayesT, turing_bayesTπ
+# export turing_bayesG_logit
 export mlp
 export ols, ridge, lasso, bayesa, bayesb, bayesc
 export validate, cvmultithread!, cvbulk

@@ -414,7 +414,7 @@ a scaled-t distribution, allowing for different variances for each marker effect
   + `y_true`: Observed phenotypic values
   + `y_pred`: Predicted phenotypic values
   + `metrics`: Dictionary of performance metrics
-  
+
 # Notes
 - The model assumes a Gaussian distribution for the trait values
 - Recommended to check convergence by examining trace plots of key parameters
@@ -500,7 +500,7 @@ a mixture distribution where some markers have zero effect and others follow a s
   + `y_true`: Observed phenotypic values
   + `y_pred`: Predicted phenotypic values
   + `metrics`: Dictionary of performance metrics
-  
+
 # Examples
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
@@ -581,7 +581,7 @@ a mixture distribution with a point mass at zero and a normal distribution.
   + `y_true`: Observed phenotypic values
   + `y_pred`: Predicted phenotypic values
   + `metrics`: Dictionary of performance metrics
-  
+
 # Examples
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);

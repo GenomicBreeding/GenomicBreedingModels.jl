@@ -15,9 +15,9 @@ using Random
 using Distances
 using UnicodePlots
 using GLMNet
-using Turing
-using BenchmarkTools, TuringBenchmarking
-using ReverseDiff
+# using Turing
+# using BenchmarkTools, TuringBenchmarking
+# using ReverseDiff
 using DataFrames
 using Suppressor
 using ProgressMeter
