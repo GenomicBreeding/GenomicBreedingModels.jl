@@ -213,11 +213,11 @@ function predict(; fit::Fit, genomes::Genomes, idx_entries::Vector{Int64})::Vect
         )
     end
     idx_loci_alleles = try
-        [findall(genomes.loci_alleles .== x)[1] for x in fit.b_hat_labels[2:end]]
+        [findall(genomes.loci_alleles .== x)[1] for x in fit.b_hat_labels[2:end]] # errors if at least one locus in model fit is not found in genomes struct
     catch
         throw(
             ArgumentError(
-                "The loci-alleles in the fitted genomic prediction model do not match the loci-alleles in the requested validation set.",
+                "The loci-alleles in the fitted genomic prediction model do not match the loci-alleles in the requested validation set.\nThe genomes struct can have more loci-alleles than the fitted model, but all the loci-alleles in the fitted model should be in the genomes struct. Make sure the loci-alleles of the genomes struct were not filtered.",
             ),
         )
     end
