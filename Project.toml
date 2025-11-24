@@ -1,7 +1,7 @@
 name = "GenomicBreedingModels"
 uuid = "a21a2f6e-06ad-4936-9990-fa46b058b9d4"
-authors = ["jeffersonparil@gmail.com"]
 version = "0.1.0"
+authors = ["jeffersonparil@gmail.com"]
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -63,7 +63,7 @@ Suppressor = "0.2.8"
 Turing = "0.37.0, 0.38"
 TuringBenchmarking = "0.5.9"
 UnicodePlots = "3.7.1"
-Zygote = "0.6.75"
+Zygote = "0.6.75, 0.7"
 julia = "1.11"
 oneAPI = "2.0.2"
 
