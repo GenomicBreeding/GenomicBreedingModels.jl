@@ -1,30 +1,29 @@
 using Pkg
 Pkg.activate(".")
-try
-    Pkg.update()
-catch
-    nothing
-end
+# try
+#     Pkg.update()
+# catch
+#     nothing
+# end
 using GenomicBreedingModels
 using GenomicBreedingCore
 using LinearAlgebra
 using StatsBase
 using Distributions
-using Optimization
 using Random
 using Distances
 using UnicodePlots
 using GLMNet
-# using Turing
-# using BenchmarkTools, TuringBenchmarking
-# using ReverseDiff
 using DataFrames
 using Suppressor
 using ProgressMeter
 using DataFrames
-using Optimization, Optim
 using MixedModels
 using MultivariateStats
+using Optimization, Optimisers, Zygote
 using Dates
-using Lux, Optimisers, Zygote
+# using Turing
+# using BenchmarkTools, TuringBenchmarking
+# using ReverseDiff
+# using Lux, LuxCUDA
 # using LuxCUDA, AMDGPU, oneAPI # GPU support (Metal is for MacOS)
