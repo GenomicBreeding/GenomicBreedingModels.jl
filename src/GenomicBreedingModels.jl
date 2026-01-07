@@ -4,24 +4,22 @@ using GenomicBreedingCore
 using LinearAlgebra
 using StatsBase
 using Distributions
-using Optimization
 using Random
 using Distances
 using UnicodePlots
 using GLMNet
-# using Turing
-# using BenchmarkTools, TuringBenchmarking
-# using ReverseDiff
 using DataFrames
 using Suppressor
 using ProgressMeter
 using DataFrames
-using Optimization
 using MixedModels
 using MultivariateStats
+using Optimization, Optimisers, Zygote
 using Dates
-using Lux, Optimisers, Zygote
-using LuxCUDA
+# using Turing
+# using BenchmarkTools, TuringBenchmarking
+# using ReverseDiff
+# using Lux, LuxCUDA
 # using LuxCUDA, AMDGPU, oneAPI # GPU support (Metal is for MacOS)
 
 include("metrics.jl")
@@ -29,7 +27,7 @@ include("prediction.jl")
 include("transformation.jl")
 include("gwas.jl")
 include("bayes.jl")
-include("dl.jl")
+# include("dl.jl")
 include("linear.jl")
 include("non_linear.jl")
 include("cross_validation.jl")
@@ -44,7 +42,7 @@ export bglr, bayesian
 # export turing_bayesL, turing_bayesLs, turing_bayesLπ, turing_bayesLπs
 # export turing_bayesT, turing_bayesTπ
 # export turing_bayesG_logit
-export mlp
+# export mlp
 export ols, ridge, lasso, bayesa, bayesb, bayesc
 export validate, cvmultithread!, cvbulk
 export cvperpopulation, cvpairwisepopulation, cvleaveonepopulationout

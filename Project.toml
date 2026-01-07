@@ -1,7 +1,7 @@
 name = "GenomicBreedingModels"
 uuid = "a21a2f6e-06ad-4936-9990-fa46b058b9d4"
 authors = ["jeffersonparil@gmail.com"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -33,25 +33,21 @@ UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 oneAPI = "8f75cd03-7ff8-4ecb-9b8f-daf728133b1b"
 
-[sources.GenomicBreedingCore]
-rev = "main"
-url = "https://github.com/GenomicBreeding/GenomicBreedingCore.jl"
+[sources]
+GenomicBreedingCore = {rev = "main", url = "https://github.com/GenomicBreeding/GenomicBreedingCore.jl"}
 
 [compat]
 BenchmarkTools = "1.6.0"
-CUDA = "5.7.2"
 DataFrames = "1.7.0"
 Dates = "1.11.0"
 Distances = "0.10.12"
 Distributions = "0.25.116"
 Documenter = "1.8.0"
+GenomicBreedingCore = "0.2.0"
 GLMNet = "0.7.4"
 LinearAlgebra = "1.11.0"
-Lux = "1.9.0"
-LuxCUDA = "0.3.3"
 MixedModels = "4.29.1, 5"
 MultivariateStats = "0.10.3"
-Optim = "1.11.0"
 Optimisers = "0.4.5"
 Optimization = "4.0.5"
 ProgressMeter = "1.10.2"
@@ -60,12 +56,9 @@ ReverseDiff = "1.15.3"
 Statistics = "1.11.1"
 StatsBase = "0.34.4"
 Suppressor = "0.2.8"
-Turing = "0.37.0, 0.38"
-TuringBenchmarking = "0.5.9"
 UnicodePlots = "3.7.1"
 Zygote = "0.6.75"
 julia = "1.12"
-oneAPI = "2.0.2"
 
 [extras]
 CUDA_Runtime_jll = "76a88914-d11a-5bdc-97e0-2f5a05c973a2"
