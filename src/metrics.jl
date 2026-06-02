@@ -28,6 +28,26 @@ function pearsonscorrelation(y_true::Vector{Float64}, y_pred::Vector{Float64})::
     1.00 - Distances.corr_dist(y_true, y_pred)
 end
 
+"""
+    r2(y_true::Vector{Float64}, y_pred::Vector{Float64})::Float64
+
+Calculate the coefficient of determination (R²) between true and predicted values.
+
+
+# Returns
+- `Float64`: R² measures the proportion of variance in the dependent variable that is predictable 
+from the independent variable(s). It ranges from -Inf to 1, where 1 indicates a perfect fit.
+"""
+function r2(y_true::Vector{Float64}, y_pred::Vector{Float64})::Float64
+    # y_true::Vector{Float64} = rand(100); y_pred::Vector{Float64} = rand(100)
+    if (var(y_true) < 1e-10) || (var(y_pred) < 1e-10)
+        return 0.0
+    end
+    s²y = var(y_true)
+    s²e = var(y_true - y_pred)
+    1.00 - (s²e / s²y)
+end
+
 
 """
     heritabilitynarrow_sense(y_true::Vector{Float64}, y_pred::Vector{Float64})::Float64
@@ -103,5 +123,6 @@ function metrics(y_true::Vector{Float64}, y_pred::Vector{Float64})::Dict{String,
         "jac" => Distances.jaccard(y_true, y_pred),
         "tvar" => Distances.totalvariation(y_true, y_pred),
         "h²" => heritabilitynarrow_sense(y_true, y_pred),
+        "r²" => r2(y_true, y_pred),
     )
 end

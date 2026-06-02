@@ -1,10 +1,5 @@
 using Pkg
 Pkg.activate(".")
-# try
-#     Pkg.update()
-# catch
-#     nothing
-# end
 using GenomicBreedingModels
 using GenomicBreedingCore
 using LinearAlgebra
