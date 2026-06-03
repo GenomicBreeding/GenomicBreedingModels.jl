@@ -291,11 +291,11 @@ function cvbulk(;
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
     end
-    mask_genomes = findall(mean(genomes.mask, dims = 2)[:, 1] .== 1.0)
-    mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
-    if mask_genomes != mask_phenomes
-        throw(ArgumentError("The masks in genomes and phenomes do not match."))
-    end
+    # mask_genomes = findall(mean(genomes.mask, dims = 2)[:, 1] .== 1.0)
+    # mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
+    # if mask_genomes != mask_phenomes
+    #     throw(ArgumentError("The masks in genomes and phenomes do not match."))
+    # end
     if length(models) < 1
         throw(ArgumentError("No models were specified."))
     end
@@ -334,12 +334,12 @@ function cvbulk(;
             ),
         )
     end
-    # Apply mask
-    mask_loci_alleles = findall(mean(genomes.mask, dims = 1)[1, :] .== 1.0)
-    if (mask_genomes != collect(1:n)) || (mask_loci_alleles != collect(1:p))
-        genomes = filter(genomes)
-        phenomes = filter(phenomes)
-    end
+    # # Apply mask
+    # mask_loci_alleles = findall(mean(genomes.mask, dims = 1)[1, :] .== 1.0)
+    # if (mask_genomes != collect(1:n)) || (mask_loci_alleles != collect(1:p))
+    #     genomes = filter(genomes)
+    #     phenomes = filter(phenomes)
+    # end
     # Set randomisation seed
     rng::TaskLocalRNG = Random.seed!(seed)
     # Instantiate the entire replicated cross-validation vector of output
@@ -525,11 +525,11 @@ function cvperpopulation(;
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
     end
-    mask_genomes = findall(mean(genomes.mask, dims = 2)[:, 1] .== 1.0)
-    mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
-    if mask_genomes != mask_phenomes
-        throw(ArgumentError("The masks in genomes and phenomes do not match."))
-    end
+    # mask_genomes = findall(mean(genomes.mask, dims = 2)[:, 1] .== 1.0)
+    # mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
+    # if mask_genomes != mask_phenomes
+    #     throw(ArgumentError("The masks in genomes and phenomes do not match."))
+    # end
     if length(models) < 1
         throw(ArgumentError("No models were specified."))
     end
@@ -683,11 +683,11 @@ function cvpairwisepopulation(;
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
     end
-    mask_genomes = findall(mean(genomes.mask, dims = 2)[:, 1] .== 1.0)
-    mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
-    if mask_genomes != mask_phenomes
-        throw(ArgumentError("The masks in genomes and phenomes do not match."))
-    end
+    # mask_genomes = findall(mean(genomes.mask, dims = 2)[:, 1] .== 1.0)
+    # mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
+    # if mask_genomes != mask_phenomes
+    #     throw(ArgumentError("The masks in genomes and phenomes do not match."))
+    # end
     if length(models) < 1
         throw(ArgumentError("No models were specified."))
     end
@@ -705,13 +705,13 @@ function cvpairwisepopulation(;
             )
         end
     end
-    # Apply mask
-    n, p = size(genomes.allele_frequencies) # dimensions prior to potential filtering via masks below
-    mask_loci_alleles = findall(mean(genomes.mask, dims = 1)[1, :] .== 1.0)
-    if (mask_genomes != collect(1:n)) || (mask_loci_alleles != collect(1:p))
-        genomes = filter(genomes)
-        phenomes = filter(phenomes)
-    end
+    # # Apply mask
+    # n, p = size(genomes.allele_frequencies) # dimensions prior to potential filtering via masks below
+    # mask_loci_alleles = findall(mean(genomes.mask, dims = 1)[1, :] .== 1.0)
+    # if (mask_genomes != collect(1:n)) || (mask_loci_alleles != collect(1:p))
+    #     genomes = filter(genomes)
+    #     phenomes = filter(phenomes)
+    # end
     # Instantiate the entire replicated cross-validation vector of output
     if verbose
         println("Cross-validation per pair of populations")
@@ -925,11 +925,11 @@ function cvleaveonepopulationout(;
     if genomes.entries != phenomes.entries
         throw(ArgumentError("The genomes and phenomes input need to have been merged to have consitent entries."))
     end
-    mask_genomes = findall(mean(genomes.mask, dims = 2)[:, 1] .== 1.0)
-    mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
-    if mask_genomes != mask_phenomes
-        throw(ArgumentError("The masks in genomes and phenomes do not match."))
-    end
+    # mask_genomes = findall(mean(genomes.mask, dims = 2)[:, 1] .== 1.0)
+    # mask_phenomes = findall(mean(phenomes.mask, dims = 2)[:, 1] .== 1.0)
+    # if mask_genomes != mask_phenomes
+    #     throw(ArgumentError("The masks in genomes and phenomes do not match."))
+    # end
     if length(models) < 1
         throw(ArgumentError("No models were specified."))
     end
@@ -947,13 +947,13 @@ function cvleaveonepopulationout(;
             )
         end
     end
-    # Apply mask
-    n, p = size(genomes.allele_frequencies) # dimensions prior to potential filtering via masks below
-    mask_loci_alleles = findall(mean(genomes.mask, dims = 1)[1, :] .== 1.0)
-    if (mask_genomes != collect(1:n)) || (mask_loci_alleles != collect(1:p))
-        genomes = filter(genomes)
-        phenomes = filter(phenomes)
-    end
+    # # Apply mask
+    # n, p = size(genomes.allele_frequencies) # dimensions prior to potential filtering via masks below
+    # mask_loci_alleles = findall(mean(genomes.mask, dims = 1)[1, :] .== 1.0)
+    # if (mask_genomes != collect(1:n)) || (mask_loci_alleles != collect(1:p))
+    #     genomes = filter(genomes)
+    #     phenomes = filter(phenomes)
+    # end
     # Instantiate the entire replicated cross-validation vector of output
     if verbose
         println("Leave-one-population-out cross-validation")
