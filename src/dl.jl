@@ -64,7 +64,7 @@
 # ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, Suppressor)
 # julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-# julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+# julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 # julia> phenomes = extractphenomes(trials);
 
@@ -96,7 +96,7 @@
 #     verbose::Bool = false,
 # )::Fit
 #     # genomes = GenomicBreedingCore.simulategenomes(n=500, l=10_000, n_populations=3, verbose=true)
-#     # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+#     # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 #     # phenomes = extractphenomes(trials)
 #     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; add_intercept = true
 #     # n_layers = 4

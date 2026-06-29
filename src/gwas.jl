@@ -46,7 +46,7 @@ julia> genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy)
 
 julia> proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5;
 
-julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
+julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -86,7 +86,7 @@ function gwasprep(;
 )::Tuple{Matrix{Float64},Vector{Float64},Matrix{Float64},Fit}
     # genomes = GenomicBreedingCore.simulategenomes(); ploidy = 4; genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy
     # proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5
-    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
+    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; GRM_type = "ploidy-aware"; verbose = true
     # Check arguments while extracting the allele frequencies
@@ -185,7 +185,7 @@ julia> genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy)
 
 julia> proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5;
 
-julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
+julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -214,7 +214,7 @@ function gwasols(;
 )::Fit
     # genomes = GenomicBreedingCore.simulategenomes(); ploidy = 4; genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy
     # proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5
-    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
+    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; GRM_type = "ploidy-aware"; verbose = true
     # Check arguments while preparing the G, y, GRM, and Fit struct, vector and matrices
@@ -308,7 +308,7 @@ julia> genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy)
 
 julia> proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5;
 
-julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
+julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -337,7 +337,7 @@ function gwaslmm(;
 )::Fit
     # genomes = GenomicBreedingCore.simulategenomes(); ploidy = 4; genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy
     # proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5
-    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
+    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; GRM_type = "ploidy-aware"; verbose = true
     # Check arguments while preparing the G, y, GRM, and Fit struct, vector and matrices
@@ -436,7 +436,7 @@ julia> genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy)
 
 julia> proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5;
 
-julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
+julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -450,7 +450,7 @@ true
 function loglikreml(θ::Vector{Float64}, data::Tuple{Vector{Float64},Matrix{Float64},Matrix{Float64}})::Float64
     # genomes = GenomicBreedingCore.simulategenomes(); ploidy = 4; genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy
     # proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5
-    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
+    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
     # phenomes = extractphenomes(trials)
     # G, y, GRM, _ = gwasprep(genomes=genomes, phenomes=phenomes)
     # X = hcat(ones(length(y)), G[:, 1])
@@ -528,7 +528,7 @@ julia> genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy)
 
 julia> proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5;
 
-julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
+julia> trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -557,7 +557,7 @@ function gwasreml(;
 )::Fit
     # genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false); ploidy = 4; genomes.allele_frequencies = round.(genomes.allele_frequencies .* ploidy) ./ ploidy
     # proportion_of_variance = zeros(9, 1); proportion_of_variance[1, 1] = 0.5
-    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
+    # trials, effects = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.05 0.00 0.00;], proportion_of_variance = proportion_of_variance, verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing; idx_trait = 1; GRM_type = "ploidy-aware"; verbose = true
     # Check arguments while preparing the G, y, GRM, and Fit struct, vector and matrices

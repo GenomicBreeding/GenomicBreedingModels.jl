@@ -52,11 +52,12 @@ end
 ### REPL prelude
 
 ```shell
-julia --threads 3,1 --load test/interactive_prelude.jl
+julia --project=. --threads=2,1 --load test/interactive_prelude.jl
 ```
 
 ### Format and test
 
 ```shell
-time julia --threads 3,1 test/cli_tester.jl
+time julia --project=. --threads=2 -e "using Pkg; Pkg.update()"
+time julia --project=. --threads=2  test/cli_tester.jl
 ```
