@@ -34,7 +34,7 @@ Evaluate the predictive accuracy of a genomic prediction model on a validation d
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -55,7 +55,7 @@ function validate(
     fold::String = "",
 )::CV
     # genomes = GenomicBreedingCore.simulategenomes(n=300, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, verbose=false);
     # phenomes = extractphenomes(trials)
     # fit = ridge(genomes=genomes, phenomes=phenomes, idx_entries=collect(1:200))
     # idx_validation = collect(201:300); replication = ""; fold = "";
@@ -114,7 +114,7 @@ from the models_vector. For each fold:
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -248,7 +248,7 @@ Example startup command: `julia --threads 7,1` (7 worker threads, 1 runtime thre
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -274,7 +274,7 @@ function cvbulk(;
     verbose::Bool = true,
 )::Tuple{Vector{CV},Vector{String}}
     # genomes = GenomicBreedingCore.simulategenomes(n=300, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, verbose=false);
     # phenomes = extractphenomes(trials)
     # models = [ridge, lasso]
     # n_folds = 2; n_replications = 2; seed = 42; verbose = true
@@ -465,7 +465,7 @@ for multi-threaded processes and 1 is reserved for the Julia runtime.
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase; import GenomicBreedingModels: ridge)
 julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -508,7 +508,7 @@ function cvperpopulation(;
     verbose::Bool = true,
 )::Tuple{Vector{CV},Vector{String}}
     # genomes = GenomicBreedingCore.simulategenomes(n=300, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, verbose=false);
     # phenomes = extractphenomes(trials)
     # models = [ridge, lasso]
     # n_folds = 2; n_replications = 2; seed = 42; verbose = true
@@ -637,7 +637,7 @@ Requires Julia to be started with multiple threads:
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -666,7 +666,7 @@ function cvpairwisepopulation(;
     verbose::Bool = true,
 )::Tuple{Vector{CV},Vector{String}}
     # genomes = GenomicBreedingCore.simulategenomes(n=300, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, verbose=false);
     # phenomes = extractphenomes(trials)
     # models = [ridge, lasso]
     # n_folds = 2; n_replications = 2; seed = 42; verbose = true
@@ -879,7 +879,7 @@ for computation and 1 is reserved for the runtime.
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -908,7 +908,7 @@ function cvleaveonepopulationout(;
     verbose::Bool = true,
 )::Tuple{Vector{CV},Vector{String}}
     # genomes = GenomicBreedingCore.simulategenomes(n=300, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, verbose=false);
     # phenomes = extractphenomes(trials)
     # models = [ridge, lasso]
     # n_folds = 2; n_replications = 2; seed = 42; verbose = true

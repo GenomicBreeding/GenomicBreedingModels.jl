@@ -106,7 +106,7 @@ The function performs the following steps:
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase, DataFrames)
 julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -142,7 +142,7 @@ function transform1(
 )::Genomes
     # f=sqrt
     # genomes = GenomicBreedingCore.simulategenomes()
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing; 
     # n_new_features_per_transformation = 1_000; ϵ = eps(Float64); use_abs = true; σ²_threshold = 0.01; verbose = true;
     # Extract the allele frequencies matrix, etc, while checking the arguments
@@ -291,7 +291,7 @@ The function performs the following steps:
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase, DataFrames)
 julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -332,7 +332,7 @@ function transform2(
 )::Genomes
     # f=(x,y) -> (x^2 + sqrt(y)) / 2;
     # genomes = GenomicBreedingCore.simulategenomes(l=1_000)
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing; 
     # n_new_features_per_transformation = 1_000; ϵ = eps(Float64); use_abs = true; σ²_threshold = 0.01; commutative = false; verbose = true;
     # Extract the allele frequencies matrix, etc, while checking the arguments
@@ -515,7 +515,7 @@ The transformations are repeated `n_reps` times to create a rich set of derived 
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase, DataFrames)
 julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -550,7 +550,7 @@ function epistasisfeatures(
     verbose::Bool = false,
 )::Genomes
     # genomes = GenomicBreedingCore.simulategenomes(l=1_000)
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials); idx_trait = 1; idx_entries = nothing; idx_loci_alleles = nothing;
     # transformations1 = [square, invoneplus, log10epsdivlog10eps]
     # transformations2 = [mult, addnorm, raise]
@@ -713,7 +713,7 @@ contain the transformation operations in a format that can be parsed and evaluat
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase, DataFrames)
 julia> genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -729,7 +729,7 @@ true
 """
 function reconstitutefeatures(genomes::Genomes; feature_names::Vector{String}, verbose::Bool = false)::Genomes
     # genomes = GenomicBreedingCore.simulategenomes(l=1_000, verbose=false);
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
     # phenomes = extractphenomes(trials);
     # f1(x) = x^2;
     # f2(x,y) = (x^2 + sqrt(y)) / 2;

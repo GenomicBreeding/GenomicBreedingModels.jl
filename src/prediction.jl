@@ -37,7 +37,7 @@ A tuple containing:
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);;
 
 julia> phenomes = extractphenomes(trials);
 
@@ -59,7 +59,7 @@ function extractxyetc(
     add_intercept::Bool = true,
 )::Tuple{Matrix{Float64},Vector{Float64},Vector{String},Vector{String},Vector{String}}
     # genomes = GenomicBreedingCore.simulategenomes()
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
     # phenomes = extractphenomes(trials)
     # idx_entries = nothing; idx_loci_alleles = nothing
     # idx_trait = 1; add_intercept = true
@@ -174,7 +174,7 @@ before making predictions.
 ```jldoctest; setup = :(using GenomicBreedingCore, GenomicBreedingModels, StatsBase)
 julia> genomes = GenomicBreedingCore.simulategenomes(verbose=false);
 
-julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
+julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, f_add_dom_epi=[0.1 0.01 0.01;], verbose=false);
 
 julia> phenomes = extractphenomes(trials);
 
@@ -188,7 +188,7 @@ true
 """
 function predict(; fit::Fit, genomes::Genomes, idx_entries::Vector{Int64})::Vector{Float64}
     # genomes = GenomicBreedingCore.simulategenomes(n=300, verbose=false); genomes.populations = StatsBase.sample(string.("pop_", 1:3), length(genomes.entries), replace=true);
-    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_harvests=1, n_sites=1, n_replications=1, verbose=false);
+    # trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1, n_seasons=1, n_measurements=1, n_sites=1, n_replications=1, verbose=false);
     # phenomes = extractphenomes(trials)
     # fit = ridge(genomes=genomes, phenomes=phenomes, idx_entries=collect(1:200))
     # idx_entries = collect(201:300)
