@@ -1,6 +1,6 @@
 name = "GenomicBreedingModels"
 uuid = "a21a2f6e-06ad-4936-9990-fa46b058b9d4"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["jeffersonparil@gmail.com"]
 
 [deps]
