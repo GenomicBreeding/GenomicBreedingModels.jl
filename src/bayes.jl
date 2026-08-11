@@ -204,8 +204,7 @@ function bayesian(
         verbose = verbose,
     )
     # Clean-up BGLR temp files
-    files_tmp = filter(x -> occursin(Regex(".dat\$"), x), readdir())
-    rm.(files_tmp)
+    rm.(filter(x -> occursin(Regex(".dat\$"), x), readdir()))
     # Assess prediction accuracy
     y_pred::Vector{Float64} = X * b_hat
     performance::Dict{String,Float64} = metrics(y, y_pred)

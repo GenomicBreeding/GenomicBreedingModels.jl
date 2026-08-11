@@ -52,6 +52,7 @@ end
 ### REPL prelude
 
 ```shell
+julia --project=. -e 'using Pkg; Pkg.instantiate()' # For a fresh Julia installation
 julia --project=. --threads=2,1 --load test/interactive_prelude.jl
 ```
 

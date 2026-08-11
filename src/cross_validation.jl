@@ -38,7 +38,7 @@ julia> trials, _ = GenomicBreedingCore.simulatetrials(genomes=genomes, n_years=1
 
 julia> phenomes = extractphenomes(trials);
 
-julia> fit = ridge(genomes=genomes, phenomes=phenomes, idx_entries=collect(1:90));
+julia> fit = GenomicBreedingModels.ridge(genomes=genomes, phenomes=phenomes, idx_entries=collect(1:90));
 
 julia> cv = validate(fit, genomes, phenomes, idx_validation=collect(91:100));
 
@@ -134,9 +134,9 @@ julia> cv_1 = CV("replication_1", "fold_1", fit, genomes.populations[idx_validat
 
 julia> cv_2 = CV("replication_1", "fold_2", fit, genomes.populations[idx_validation_2], genomes.entries[idx_validation_2], zeros(length(idx_validation_2)), zeros(length(idx_validation_2)), fit.metrics);
 
-julia> cvs = [cv_1, cv_2]; models = [ridge, ridge];
+julia> cvs = [cv_1, cv_2];
 
-julia> cvmultithread!(cvs, genomes=genomes, phenomes=phenomes, models_vector=[ridge, bayesa], verbose=false);
+julia> cvmultithread!(cvs, genomes=genomes, phenomes=phenomes, models_vector=[GenomicBreedingModels.ridge, GenomicBreedingModels.bayesa], verbose=false);
 
 julia> df_across_entries, df_per_entry = tabularise(cvs);
 
@@ -157,7 +157,8 @@ function cvmultithread!(cvs::Vector{CV}; genomes::Genomes, phenomes::Phenomes, m
     end
     thread_lock::ReentrantLock = ReentrantLock()
     Threads.@threads for i = 1:m
-        # i = 1
+        # i = 2
+        # println("i = $i")
         model = models_vector[i]
         idx_training = [findall(genomes.entries .== x)[1] for x in cvs[i].fit.entries]
         idx_validation = [findall(genomes.entries .== x)[1] for x in cvs[i].validation_entries]
@@ -743,9 +744,9 @@ function cvpairwisepopulation(;
                 )
                 idx_validation = findall(
                     (phenomes.populations .== validation_population) .&&
-                    .!ismissing.(ϕ) .&&
-                    .!isnan.(ϕ) .&&
-                    .!isinf.(ϕ),
+                        .!ismissing.(ϕ) .&&
+                        .!isnan.(ϕ) .&&
+                        .!isinf.(ϕ),
                 )
                 if (length(idx_training) < 2 || length(idx_validation) < 1)
                     push!(
