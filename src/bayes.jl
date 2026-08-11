@@ -99,7 +99,7 @@ function bglr(;
     end
     # Clean-up
     files = readdir()
-    rm.(files[.!isnothing.(match.(Regex(string("^", prefix_tmp_out)), files))])
+    rm.(files[occursin.(Regex(string("^", prefix_tmp_out)), files)])
     # Output
     b_hat
 end
@@ -204,10 +204,7 @@ function bayesian(
         verbose = verbose,
     )
     # Clean-up BGLR temp files
-    files = readdir()
-    for i in findall(match.(r".dat\$", files) .!= nothing)
-        rm(files[i])
-    end
+    rm.(filter(x -> occursin(Regex(".dat\$"), x), readdir()))
     # Assess prediction accuracy
     y_pred::Vector{Float64} = X * b_hat
     performance::Dict{String,Float64} = metrics(y, y_pred)
